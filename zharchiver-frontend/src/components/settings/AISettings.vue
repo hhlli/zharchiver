@@ -104,45 +104,18 @@
         </div>
       </div>
     </div>
-
-    <!-- 消息弹窗 -->
-    <BaseModal 
-      :show="showModal" 
-      @close="showModal = false"
-      closeOnOutside
-      maxWidthClass="max-w-lg"
-    >
-      <div class="p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ modalTitle }}</h3>
-        <div class="text-sm text-gray-600 whitespace-pre-wrap max-h-[60vh] overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-100 font-mono">{{ modalMessage }}</div>
-        <div class="mt-6 flex justify-end">
-          <BaseButton variant="primary" @click="showModal = false">
-            确定
-          </BaseButton>
-        </div>
-      </div>
-    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import BaseModal from '../common/BaseModal.vue'
 import BaseButton from '../common/BaseButton.vue'
 
 const apiFetch = inject('apiFetch')
+const showAlert = inject('showAlert')
+
 const isSaving = ref(false)
 const isTesting = ref(false)
-
-const showModal = ref(false)
-const modalTitle = ref('')
-const modalMessage = ref('')
-
-const showAlert = (title, message) => {
-  modalTitle.value = title
-  modalMessage.value = message
-  showModal.value = true
-}
 
 const config = ref({
   ai_base_url: '',

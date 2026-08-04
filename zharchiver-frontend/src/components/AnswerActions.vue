@@ -79,7 +79,8 @@ const commentContent = ref('')
 const loading = ref(false)
 
 const API_BASE = ''
-const apiFetch = inject('apiFetch') // 会在 App.vue 提供
+const apiFetch = inject('apiFetch')
+const showAlert = inject('showAlert')
 
 const submitComment = async () => {
   if (!commentContent.value.trim()) return
@@ -97,11 +98,11 @@ const submitComment = async () => {
       showModal.value = false
       emit('commentAdded')
     } else {
-      alert('评论提交失败')
+      showAlert('评论失败', '评论提交失败')
     }
   } catch (err) {
     console.error(err)
-    alert('网络请求失败')
+    showAlert('错误', '网络请求失败')
   } finally {
     loading.value = false
   }

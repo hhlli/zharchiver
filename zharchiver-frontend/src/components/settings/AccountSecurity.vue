@@ -66,8 +66,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import BaseButton from '../common/BaseButton.vue'
+
+const apiFetch = inject('apiFetch')
+const showAlert = inject('showAlert')
 
 const isPasswordEnabled = ref(false)
 const initialPasswordEnabled = ref(false)
@@ -77,16 +80,6 @@ const confirmPassword = ref('')
 
 // 获取后端基础地址，根据你的实际环境调整
 const API_BASE = ''
-
-// 辅助 fetch 函数，添加鉴权
-const apiFetch = async (url, options = {}) => {
-  const token = localStorage.getItem('token') || ''
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  }
-  return await fetch(url, { ...options, headers: { ...headers, ...options.headers } })
-}
 
 // 组件挂载时获取当前安全状态
 onMounted(async () => {
@@ -105,15 +98,15 @@ onMounted(async () => {
 const updatePassword = async () => {
   if (isPasswordEnabled.value) {
     if (initialPasswordEnabled.value && !oldPassword.value) {
-      alert('请填写原密码')
+      showAlert('提示', '请填写原密码')
       return
     }
     if (newPassword.value !== confirmPassword.value) {
-      alert('两次输入的密码不一致')
+      showAlert('提示', '两次输入的密码不一致')
       return
     }
     if (newPassword.value.length < 6) {
-      alert('密码长度至少为 6 位')
+      showAlert('提示', '密码长度至少为 6 位')
       return
     }
   }
@@ -129,7 +122,7 @@ const updatePassword = async () => {
     })
 
     if (res.ok) {
-      alert('账户安全设置已保存')
+      showAlert('成功', '账户安全设置已保存')
       oldPassword.value = ''
       newPassword.value = ''
       confirmPassword.value = ''
@@ -141,11 +134,11 @@ const updatePassword = async () => {
       }
     } else {
       const errText = await res.text()
-      alert('保存失败: ' + errText)
+      showAlert('保存失败', errText)
     }
   } catch (error) {
     console.error('保存请求异常:', error)
-    alert('网络请求失败')
+    showAlert('错误', '网络请求失败')
   }
 }
 </script>

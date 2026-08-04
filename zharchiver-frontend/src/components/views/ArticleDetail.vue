@@ -101,6 +101,7 @@ const onCommentAdded = () => {
 
 const API_BASE = ''
 const apiFetch = inject('apiFetch')
+const showAlert = inject('showAlert')
 
 const isEditingTag = ref(false)
 const editTagValue = ref('')
@@ -135,7 +136,7 @@ const saveTag = async () => {
     isEditingTag.value = false
     emit('refresh')
   } catch (err) {
-    alert(err.message)
+    showAlert('错误', err.message)
   }
 }
 

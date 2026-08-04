@@ -107,6 +107,24 @@
     <AddArchiveModal v-model:show="showAddModal" :tags="tags" @success="onArchiveSuccess" />
     <LoginModal v-model:show="showLoginModal" @success="fetchAnswersList" />
 
+    <!-- 全局消息弹窗 -->
+    <BaseModal 
+      :show="showGlobalAlert" 
+      @close="showGlobalAlert = false"
+      closeOnOutside
+      maxWidthClass="max-w-lg"
+    >
+      <div class="p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ globalAlertTitle }}</h3>
+        <div class="text-sm text-gray-600 whitespace-pre-wrap max-h-[60vh] overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-100 font-mono">{{ globalAlertMessage }}</div>
+        <div class="mt-6 flex justify-end">
+          <BaseButton variant="primary" @click="showGlobalAlert = false">
+            确定
+          </BaseButton>
+        </div>
+      </div>
+    </BaseModal>
+
   </div>
 </template>
 
@@ -125,6 +143,8 @@ import AccountSecurity from './components/settings/AccountSecurity.vue'
 import AISettings from './components/settings/AISettings.vue'
 import LogCenter from './components/settings/LogCenter.vue'
 import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
+import BaseModal from './components/common/BaseModal.vue'
+import BaseButton from './components/common/BaseButton.vue'
 
 const API_BASE = ''
 
@@ -142,6 +162,17 @@ const activeCategory = ref('all') // 'all', 'marked', 'images'
 const answers = ref([])
 const currentAnswer = ref(null)
 const itemToDelete = ref(null)
+
+const showGlobalAlert = ref(false)
+const globalAlertTitle = ref('')
+const globalAlertMessage = ref('')
+
+const showAlert = (title, message) => {
+  globalAlertTitle.value = title
+  globalAlertMessage.value = message
+  showGlobalAlert.value = true
+}
+provide('showAlert', showAlert)
 
 const apiFetch = async (url, options = {}) => {
   const token = localStorage.getItem('token')
@@ -234,11 +265,11 @@ const confirmDelete = async () => {
       await fetchAnswersList()
     } else {
       const errData = await res.json()
-      alert(`删除失败: ${errData.message}`)
+      showAlert('删除失败', errData.message)
     }
   } catch (e) {
     console.error(e)
-    alert('网络请求失败')
+    showAlert('错误', '网络请求失败')
   }
 }
 

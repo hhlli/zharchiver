@@ -109,6 +109,7 @@ import { ref, onMounted, inject } from 'vue'
 import BaseButton from '../common/BaseButton.vue'
 
 const apiFetch = inject('apiFetch')
+const showAlert = inject('showAlert')
 const API_BASE = ''
 
 const tgConfig = ref({
@@ -125,14 +126,14 @@ const sendManualBackup = async () => {
   try {
     const res = await apiFetch(`${API_BASE}/api/backup/telegram/send`, { method: 'POST' })
     if (res.ok) {
-      alert('备份已成功发送至 Telegram！')
+      showAlert('成功', '备份已成功发送至 Telegram！')
     } else {
       const err = await res.text()
-      alert('发送失败: ' + err)
+      showAlert('发送失败', err)
     }
   } catch (e) {
     console.error(e)
-    alert('网络错误')
+    showAlert('错误', '网络请求错误')
   } finally {
     sendingBackup.value = false
   }
@@ -198,28 +199,21 @@ const restoreBackup = async (event) => {
   formData.append('backup', file)
 
   try {
-    const token = localStorage.getItem('token')
-    // 直接用原生 fetch 因为 formData 会自己带上带 boundary 的 content-type
-    const headers = {}
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-    const res = await fetch(`${API_BASE}/api/backup/restore`, {
+    const res = await apiFetch(`${API_BASE}/api/backup/restore`, {
       method: 'POST',
-      headers,
       body: formData
     })
     
     if (res.ok) {
-      alert('数据恢复成功！请刷新页面。')
-      window.location.reload()
+      showAlert('恢复成功', '数据恢复成功！请刷新页面。')
+      setTimeout(() => window.location.reload(), 1500)
     } else {
       const err = await res.text()
-      alert('恢复失败: ' + err)
+      showAlert('恢复失败', err)
     }
   } catch (e) {
     console.error(e)
-    alert('网络错误')
+    showAlert('错误', '网络请求错误')
   } finally {
     restoring.value = false
     event.target.value = ''
