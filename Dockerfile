@@ -8,7 +8,7 @@ RUN npm run build
 
 # 阶段 2: 构建 Go 后端
 # 使用 Debian 基础镜像 (bookworm) 以兼容最终的 Rod 镜像 (基于 Ubuntu/Debian) 和 CGO (sqlite3)
-FROM golang:1.22-bookworm AS backend-builder
+FROM golang:1.26-bookworm AS backend-builder
 WORKDIR /app
 COPY zharchiver/go.mod zharchiver/go.sum ./
 RUN go mod download
