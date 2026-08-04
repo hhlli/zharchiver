@@ -2,9 +2,8 @@ version: '3.8'
 
 services:
   zharchiver:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # 自动拉取 GitHub Actions 在云端为您打包好的最新镜像，彻底告别 VPS 上的卡顿编译！
+    image: ghcr.io/hhlli/zharchiver:latest
     container_name: zharchiver
     restart: unless-stopped
     ports:
