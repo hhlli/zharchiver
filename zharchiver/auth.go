@@ -50,6 +50,12 @@ func authMiddleware(db *sql.DB, next http.Handler) http.Handler {
 			return
 		}
 
+		// 放行前端静态文件 (以 /api/ 或 /storage/ 开头的才需要鉴权)
+		if !strings.HasPrefix(r.URL.Path, "/api/") && !strings.HasPrefix(r.URL.Path, "/storage/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// 放行登录和状态接口
 		if r.URL.Path == "/api/auth/login" || r.URL.Path == "/api/auth/status" {
 			next.ServeHTTP(w, r)
