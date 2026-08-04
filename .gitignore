@@ -7,7 +7,7 @@
 *.dll
 *.so
 *.dylib
-zharchiver
+/zharchiver/zharchiver
 
 # Test binary, built with `go test -c`
 *.test
