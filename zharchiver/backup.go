@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,11 +29,14 @@ func (s *Server) setSetting(key, value string) error {
 	return err
 }
 
-func createBackupZip(w io.Writer) error {
+func createBackupZip(w io.Writer, db *sql.DB) error {
+	// 在打包之前强制执行 WAL Checkpoint，将缓存写入主文件，保证备份的完整性
+	_, _ = db.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
+
 	zw := zip.NewWriter(w)
 	defer zw.Close()
 
-	if err := addFileToZip(zw, "zharchiver.db", "zharchiver.db"); err != nil {
+	if err := addFileToZip(zw, "db/zharchiver.db", "zharchiver.db"); err != nil {
 		return err
 	}
 
@@ -80,7 +84,7 @@ func addFileToZip(zw *zip.Writer, srcPath, zipPath string) error {
 func (s *Server) handleDownloadBackup(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", "attachment; filename=zharchiver_backup.zip")
-	err := createBackupZip(w)
+	err := createBackupZip(w, s.db)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -114,6 +118,10 @@ func (s *Server) handleRestoreBackup(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		if path == "zharchiver.db" {
+			path = filepath.Join("db", "zharchiver.db")
+		}
+
 		if f.FileInfo().IsDir() {
 			os.MkdirAll(path, os.ModePerm)
 			continue
@@ -134,7 +142,7 @@ func (s *Server) handleRestoreBackup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 4. 重新初始化数据库连接
-	db, err := initDB("zharchiver.db")
+	db, err := initDB("db/zharchiver.db")
 	if err != nil {
 		http.Error(w, "数据库重启失败: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -268,7 +276,7 @@ func (s *Server) handleSendTelegramBackup(w http.ResponseWriter, r *http.Request
 	BroadcastLog("INFO", "开始手动打包并发送 Telegram 备份...")
 
 	var buf bytes.Buffer
-	if err := createBackupZip(&buf); err != nil {
+	if err := createBackupZip(&buf, s.db); err != nil {
 		BroadcastLog("ERROR", "手动发送 Telegram 备份失败：创建备份出错 ("+err.Error()+")")
 		http.Error(w, "创建备份失败: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -311,7 +319,7 @@ func startTelegramAutoBackup(s *Server) {
 
 				BroadcastLog("INFO", "触发定时任务：开始生成自动备份...")
 				var buf bytes.Buffer
-				if err := createBackupZip(&buf); err == nil {
+				if err := createBackupZip(&buf, s.db); err == nil {
 					errSend := sendDocumentToTelegramWithErr(token, chatID, buf.Bytes(), "zharchiver_backup_"+todayStr+".zip")
 					if errSend == nil {
 						s.setSetting("telegram_last_backup", todayStr)

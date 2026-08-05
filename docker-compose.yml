@@ -10,8 +10,8 @@ services:
       # 将主机的 8080 端口映射到容器的 8080 端口
       - "8080:8080"
     volumes:
-      # 持久化 SQLite 数据库文件，防止容器重启丢失数据
-      - ./data/zharchiver.db:/app/zharchiver.db
+      # 持久化 SQLite 数据库文件目录，防止 WAL 数据丢失
+      - ./data/db:/app/db
       # 持久化抓取下来的图片等静态资源
       - ./data/storage:/app/storage
     environment:

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 
@@ -172,6 +174,9 @@ func parseInitialJSON(jsonData string, target *ZhihuTarget) (*AnswerData, error)
 }
 
 func initDB(dbPath string) (*sql.DB, error) {
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		return nil, fmt.Errorf("创建数据库目录失败: %v", err)
+	}
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
 		return nil, err
@@ -264,7 +269,7 @@ func saveAnswer(db *sql.DB, data *AnswerData) error {
 }
 
 func main() {
-	db, err := initDB("zharchiver.db")
+	db, err := initDB("db/zharchiver.db")
 	if err != nil {
 		log.Fatalf("数据库初始化失败: %v", err)
 	}
