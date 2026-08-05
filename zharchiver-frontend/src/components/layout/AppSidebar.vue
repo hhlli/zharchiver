@@ -1,8 +1,5 @@
 <template>
-  <!-- 移动端背景遮罩 -->
-  <div v-if="isOpen" class="md:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity" @click="$emit('close')"></div>
-
-  <aside :class="['fixed md:static inset-y-0 left-0 z-50 w-64 md:w-52 bg-[#f5f5f7] border-r border-gray-200 p-3 flex flex-col justify-between flex-shrink-0 transition-transform duration-300 transform md:transform-none', isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0', isDesktopOpen ? 'md:flex' : 'md:hidden']">
+  <aside :class="['hidden md:flex inset-y-0 left-0 z-50 w-64 md:w-52 bg-[#f5f5f7] border-r border-gray-200 p-3 flex-col justify-between flex-shrink-0', isDesktopOpen ? 'flex' : 'hidden']">
     
     <!-- 主界面导航模式 -->
     <div v-if="currentView === 'home'" class="space-y-6">
@@ -56,6 +53,10 @@
             :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'data' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
           >数据管理</button>
           <button 
+            @click="handleSettingClick('display')"
+            :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'display' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
+          >偏好设置</button>
+          <button 
             @click="handleSettingClick('security')"
             :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'security' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
           >账户安全</button>
@@ -77,7 +78,6 @@
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
         </button>
         <div class="text-[11px] text-gray-400 font-mono hidden md:block">ZHArchiver v1.0</div>
-        <div class="text-[11px] text-gray-400 font-mono md:hidden ml-1">ZHArchiver v1.0</div>
       </div>
       <button @click="openSettings" :class="['p-1 rounded transition cursor-pointer', currentView === 'settings' ? 'text-gray-800 bg-gray-200' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200']" title="设置">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -107,10 +107,6 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  isOpen: {
-    type: Boolean,
-    default: false
-  },
   isDesktopOpen: {
     type: Boolean,
     default: true
@@ -121,23 +117,20 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['update:currentView', 'update:activeCategory', 'update:activeSetting', 'clear-answer', 'close', 'collapse-desktop'])
+const emit = defineEmits(['update:currentView', 'update:activeCategory', 'update:activeSetting', 'clear-answer', 'collapse-desktop'])
 
 const selectCategory = (category) => {
   emit('update:activeCategory', category)
   emit('clear-answer')
-  emit('close')
 }
 
 const openSettings = () => {
   emit('update:currentView', 'settings')
   emit('clear-answer')
-  emit('close')
 }
 
 const handleSettingClick = (setting) => {
   emit('update:activeSetting', setting)
-  emit('close')
 }
 const bgColors = {
   blue: 'bg-blue-400',

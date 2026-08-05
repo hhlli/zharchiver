@@ -4,8 +4,10 @@
     
     <AppHeader 
       v-model:searchQuery="searchQuery" 
+      v-model:activeCategory="activeCategory"
+      :tags="tags"
+      :currentView="currentView"
       @add-archive="showAddModal = true" 
-      @toggle-sidebar="toggleSidebar"
     />
 
     <!-- 2. 主体区 (侧边栏 + 内容视图) -->
@@ -17,9 +19,7 @@
         v-model:activeSetting="activeSetting"
         :tags="tags"
         :hasCurrentAnswer="!!currentAnswer"
-        :isOpen="isMobileSidebarOpen"
         :isDesktopOpen="isDesktopSidebarOpen"
-        @close="isMobileSidebarOpen = false"
         @collapse-desktop="isDesktopSidebarOpen = false"
         @clear-answer="currentAnswer = null"
       />
@@ -72,26 +72,9 @@
           <AccountSecurity v-else-if="activeSetting === 'security'" />
           <AISettings v-else-if="activeSetting === 'ai'" />
           <LogCenter v-else-if="activeSetting === 'logs'" />
+          <DisplaySettings v-else-if="activeSetting === 'display'" />
         </div>
 
-        </div>
-
-        <!-- 悬浮的视图切换控件 (Floating View Toggle) -->
-        <div v-if="currentView === 'home' && !currentAnswer" class="absolute bottom-[calc(2rem+env(safe-area-inset-bottom))] md:bottom-6 left-1/2 transform -translate-x-1/2 bg-white/80 backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.1)] border border-gray-200/60 rounded-full p-1 flex items-center text-xs font-medium text-gray-500 z-10 transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
-          <button 
-            @click="viewMode = 'grid'"
-            :class="['px-5 py-1.5 rounded-full transition-all cursor-pointer flex items-center space-x-1.5', viewMode === 'grid' ? 'bg-blue-50 text-blue-600 shadow-sm' : 'hover:text-gray-900']"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-            <span>网格</span>
-          </button>
-          <button 
-            @click="viewMode = 'list'"
-            :class="['px-5 py-1.5 rounded-full transition-all cursor-pointer flex items-center space-x-1.5', viewMode === 'list' ? 'bg-blue-50 text-blue-600 shadow-sm' : 'hover:text-gray-900']"
-          >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            <span>列表</span>
-          </button>
         </div>
 
       </main>
@@ -102,6 +85,12 @@
       <span>知乎内容本地归档库</span>
       <span>已加载 {{ answers.length }} 个项目</span>
     </footer>
+
+    <!-- 移动端悬浮菜单 (FAB) -->
+    <MobileFloatingMenu 
+      v-model:currentView="currentView"
+      v-model:activeSetting="activeSetting"
+    />
 
     <!-- 弹窗集群 -->
     <AddArchiveModal v-model:show="showAddModal" :tags="tags" @success="onArchiveSuccess" />
@@ -142,20 +131,27 @@ import DataManagement from './components/settings/DataManagement.vue'
 import AccountSecurity from './components/settings/AccountSecurity.vue'
 import AISettings from './components/settings/AISettings.vue'
 import LogCenter from './components/settings/LogCenter.vue'
+import DisplaySettings from './components/settings/DisplaySettings.vue'
 import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import BaseModal from './components/common/BaseModal.vue'
 import BaseButton from './components/common/BaseButton.vue'
+import MobileFloatingMenu from './components/layout/MobileFloatingMenu.vue'
 
 const API_BASE = ''
 
 const isDesktopSidebarOpen = ref(true)
-const isMobileSidebarOpen = ref(false)
 const showAddModal = ref(false)
 const showLoginModal = ref(false)
 
 const currentView = ref('home') 
 const activeSetting = ref('auth') 
-const viewMode = ref('grid') 
+const viewMode = ref(localStorage.getItem('viewMode') || 'grid') 
+provide('viewMode', viewMode)
+provide('setViewMode', (mode) => {
+  viewMode.value = mode
+  localStorage.setItem('viewMode', mode)
+})
+
 const searchQuery = ref('')
 const activeCategory = ref('all') // 'all', 'marked', 'images'
 
@@ -276,12 +272,4 @@ const confirmDelete = async () => {
 onMounted(() => {
   fetchAnswersList()
 })
-
-const toggleSidebar = () => {
-  if (window.innerWidth >= 768) {
-    isDesktopSidebarOpen.value = !isDesktopSidebarOpen.value
-  } else {
-    isMobileSidebarOpen.value = !isMobileSidebarOpen.value
-  }
-}
 </script>

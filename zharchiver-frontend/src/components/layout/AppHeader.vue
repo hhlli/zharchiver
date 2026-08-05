@@ -3,13 +3,6 @@
     <!-- 左侧：Logo 与 基础控制 -->
     <div class="flex items-center space-x-3 md:space-x-6">
       <div class="flex items-center space-x-2">
-        <!-- 移动端汉堡菜单按钮 -->
-        <button 
-          @click="$emit('toggle-sidebar')"
-          class="md:hidden p-1 -ml-2 text-gray-500 hover:text-gray-800 transition rounded-md hover:bg-gray-100"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-        </button>
         <!-- Logo: 使用一个更精致的SVG图标代表归档/箱子 -->
         <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +15,7 @@
 
     <!-- 右侧：搜索框 与 新建归档 -->
     <div class="flex items-center space-x-2 md:space-x-4">
-      <div class="w-36 md:w-52 relative">
+      <div class="w-24 sm:w-32 md:w-52 relative">
         <input 
           :value="searchQuery"
           @input="$emit('update:searchQuery', $event.target.value)"
@@ -34,6 +27,17 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
       </div>
+
+      <!-- 分类下拉框 (仅移动端) -->
+      <select 
+        v-if="currentView === 'home'"
+        :value="activeCategory"
+        @change="$emit('update:activeCategory', $event.target.value)"
+        class="md:hidden w-20 sm:w-24 bg-gray-100 text-xs text-gray-700 py-1.5 px-2 rounded-lg border-none focus:ring-0 appearance-none text-center cursor-pointer"
+      >
+        <option value="all">所有</option>
+        <option v-for="tag in tags" :key="tag.name" :value="tag.name">{{ tag.name }}</option>
+      </select>
       
       <!-- 新增归档按钮 -->
       <button 
@@ -52,7 +56,19 @@ defineProps({
   searchQuery: {
     type: String,
     default: ''
+  },
+  activeCategory: {
+    type: String,
+    default: 'all'
+  },
+  tags: {
+    type: Array,
+    default: () => []
+  },
+  currentView: {
+    type: String,
+    default: 'home'
   }
 })
-defineEmits(['update:searchQuery', 'add-archive', 'toggle-sidebar'])
+defineEmits(['update:searchQuery', 'update:activeCategory', 'add-archive'])
 </script>
