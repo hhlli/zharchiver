@@ -14,9 +14,9 @@
           系统设置
         </div>
         <button 
-          @click="openSettings('display')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'display' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
-        >偏好设置</button>
+          @click="openSettings('security')"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'security' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+        >账户安全</button>
         <button 
           @click="openSettings('auth')"
           :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'auth' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
@@ -26,9 +26,9 @@
           :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'data' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >数据管理</button>
         <button 
-          @click="openSettings('security')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'security' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
-        >账户安全</button>
+          @click="openSettings('display')"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'display' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+        >偏好设置</button>
         <button 
           @click="openSettings('ai')"
           :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'ai' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"

@@ -45,6 +45,10 @@
         <div class="text-[11px] font-semibold text-gray-400 px-3 mb-2 tracking-wider">系统设置</div>
         <nav class="space-y-1">
           <button 
+            @click="handleSettingClick('security')"
+            :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'security' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
+          >账户安全</button>
+          <button 
             @click="handleSettingClick('auth')"
             :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'auth' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
           >平台鉴权</button>
@@ -56,10 +60,6 @@
             @click="handleSettingClick('display')"
             :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'display' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
           >偏好设置</button>
-          <button 
-            @click="handleSettingClick('security')"
-            :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'security' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
-          >账户安全</button>
           <button 
             @click="handleSettingClick('ai')"
             :class="['w-full text-left px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', activeSetting === 'ai' ? 'bg-gray-200/80 text-gray-900 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
