@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"crypto/tls"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -26,7 +27,8 @@ func sendMessageToTelegram(token, chatID, text string) {
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	
-	client := &http.Client{Timeout: 10 * time.Second}
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Timeout: 10 * time.Second, Transport: tr}
 	client.Do(req)
 }
 
@@ -45,7 +47,8 @@ func sendMessageToTelegramWithMarkup(token, chatID, text string, markup interfac
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	
-	client := &http.Client{Timeout: 10 * time.Second}
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Timeout: 10 * time.Second, Transport: tr}
 	client.Do(req)
 }
 
@@ -62,7 +65,8 @@ func editMessageText(token string, chatID int64, messageID int, text string) {
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	
-	client := &http.Client{Timeout: 10 * time.Second}
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Timeout: 10 * time.Second, Transport: tr}
 	client.Do(req)
 }
 
@@ -77,7 +81,8 @@ func answerCallbackQuery(token, callbackQueryID string) {
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	req.Header.Set("Content-Type", "application/json")
 	
-	client := &http.Client{Timeout: 10 * time.Second}
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Timeout: 10 * time.Second, Transport: tr}
 	client.Do(req)
 }
 
@@ -116,7 +121,9 @@ type TelegramPhotoSize struct {
 
 func downloadTelegramFile(token, fileID string) ([]byte, error) {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/getFile?file_id=%s", token, fileID)
-	resp, err := http.Get(url)
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Timeout: 30 * time.Second, Transport: tr}
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +140,7 @@ func downloadTelegramFile(token, fileID string) ([]byte, error) {
 	}
 	
 	dlUrl := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", token, fileResp.Result.FilePath)
-	dlResp, err := http.Get(dlUrl)
+	dlResp, err := client.Get(dlUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +192,8 @@ type TelegramUpdateResponse struct {
 func StartTelegramBotListener(db *sql.DB) {
 	go func() {
 		lastUpdateID := 0
-		client := &http.Client{Timeout: 35 * time.Second} // getUpdates has timeout=30
+		tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+		client := &http.Client{Timeout: 35 * time.Second, Transport: tr} // getUpdates has timeout=30
 
 		for {
 			token := models.GetSetting(db, "telegram_bot_token")
