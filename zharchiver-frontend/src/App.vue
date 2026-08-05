@@ -39,7 +39,7 @@
       <!-- 右侧主内容展示区 -->
       <main class="flex-1 bg-gray-50/30 md:bg-white relative flex flex-col min-w-0">
         
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 select-text">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text">
         <!-- 删除确认弹窗 -->
         <DeleteConfirmModal
           :show="itemToDelete !== null"
@@ -77,7 +77,7 @@
         </div>
 
         <!-- 悬浮的视图切换控件 (Floating View Toggle) -->
-        <div v-if="currentView === 'home' && !currentAnswer" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/80 backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.1)] border border-gray-200/60 rounded-full p-1 flex items-center text-xs font-medium text-gray-500 z-10 transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
+        <div v-if="currentView === 'home' && !currentAnswer" class="absolute bottom-[calc(2rem+env(safe-area-inset-bottom))] md:bottom-6 left-1/2 transform -translate-x-1/2 bg-white/80 backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.1)] border border-gray-200/60 rounded-full p-1 flex items-center text-xs font-medium text-gray-500 z-10 transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)]">
           <button 
             @click="viewMode = 'grid'"
             :class="['px-5 py-1.5 rounded-full transition-all cursor-pointer flex items-center space-x-1.5', viewMode === 'grid' ? 'bg-blue-50 text-blue-600 shadow-sm' : 'hover:text-gray-900']"
