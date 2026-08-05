@@ -104,6 +104,7 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	mux.HandleFunc("GET /api/answers/{id}", env.handleGetAnswerByID)
 	mux.HandleFunc("DELETE /api/answers/{id}", env.handleDeleteAnswer)
 	mux.HandleFunc("PATCH /api/answers/{id}/tag", env.handleUpdateTag)
+	mux.HandleFunc("PATCH /api/answers/{id}/content", env.handleUpdateAnswer)
 	mux.HandleFunc("GET /api/answers/{id}/comments", env.handleGetComments)
 	mux.HandleFunc("POST /api/answers/{id}/comments", env.handleAddComment)
 	mux.HandleFunc("POST /api/archive", env.handleArchive)

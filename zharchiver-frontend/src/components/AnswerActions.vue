@@ -1,9 +1,10 @@
 <template>
   <div class="flex items-center space-x-3 ml-4 border-l pl-4 border-gray-200">
-    <!-- 编辑按钮 (占位) -->
+    <!-- 编辑按钮 -->
     <button 
+      @click="$emit('edit')"
       class="text-xs text-gray-500 hover:text-blue-600 transition flex items-center space-x-1 cursor-pointer"
-      title="编辑当前回答 (占位)"
+      title="编辑当前回答"
     >
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
       <span>编辑</span>
@@ -73,7 +74,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['commentAdded'])
+const emit = defineEmits(['commentAdded', 'edit'])
 
 const showModal = ref(false)
 const commentContent = ref('')

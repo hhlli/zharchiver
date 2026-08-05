@@ -18,9 +18,9 @@
         <p v-if="errorMsg" class="text-red-500 text-xs mt-1">{{ errorMsg }}</p>
       </div>
 
-      <div class="space-y-2">
+      <div class="space-y-3">
         <label class="text-xs text-gray-500">标签 (可选)</label>
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-2 pt-1">
           <input 
             v-model="inputTag"
             type="text" 
@@ -32,8 +32,8 @@
           <datalist id="existing-tags">
             <option v-for="t in store.tags" :key="t.name" :value="t.name"></option>
           </datalist>
-          <div class="flex items-center space-x-1.5 px-1 flex-shrink-0">
-            <button v-for="(hex, c) in hexColors" :key="c" @click="inputTagColor = c" :class="['w-4 h-4 rounded-full cursor-pointer transition', inputTagColor === c ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
+          <div class="flex flex-wrap items-center gap-1.5 px-1 flex-shrink-0">
+            <button v-for="(hex, c) in hexColors" :key="c" @click="inputTagColor = c" :class="['w-3.5 h-3.5 rounded-full cursor-pointer transition', inputTagColor === c ? 'ring-2 ring-offset-1 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
           </div>
         </div>
       </div>
@@ -75,7 +75,13 @@ const hexColors = {
   red: '#ef4444',
   green: '#10b981',
   yellow: '#f59e0b',
-  purple: '#8b5cf6'
+  purple: '#8b5cf6',
+  pink: '#ec4899',
+  indigo: '#6366f1',
+  teal: '#14b8a6',
+  orange: '#f97316',
+  cyan: '#06b6d4',
+  slate: '#64748b'
 }
 
 const submitArchive = async () => {

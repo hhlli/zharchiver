@@ -1,1 +1,20 @@
 @import "tailwindcss";
+
+/* 强制统一文章内容的行距与段落间距，覆盖原有内联样式 */
+.prose p {
+  margin-top: 0.8em !important;
+  margin-bottom: 0.8em !important;
+  line-height: 1.8 !important;
+}
+.prose span, .prose a, .prose strong, .prose em, .prose font {
+  line-height: inherit !important;
+  font-family: inherit !important;
+}
+.prose h1, .prose h2, .prose h3, .prose h4 {
+  line-height: 1.4 !important;
+  margin-top: 1.5em !important;
+  margin-bottom: 0.8em !important;
+}
+.prose blockquote, .prose li {
+  line-height: 1.8 !important;
+}

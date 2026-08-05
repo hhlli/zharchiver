@@ -79,6 +79,32 @@ func (env *HandlerEnv) handleUpdateTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (env *HandlerEnv) handleUpdateAnswer(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "缺少 id 参数", http.StatusBadRequest)
+		return
+	}
+
+	var req struct {
+		Title       string `json:"title"`
+		ContentHTML string `json:"content_html"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "解析请求体失败", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.UpdateAnswerContent(env.db, id, req.Title, req.ContentHTML); err != nil {
+		utils.BroadcastLog("ERROR", fmt.Sprintf("更新文章内容失败 (ID: %s)：%v", id, err))
+		http.Error(w, fmt.Sprintf("更新文章内容失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.BroadcastLog("INFO", fmt.Sprintf("修改了归档内容 (ID: %s)", id))
+	w.WriteHeader(http.StatusOK)
+}
+
 func (env *HandlerEnv) handleDeleteAnswer(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {

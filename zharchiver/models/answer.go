@@ -12,6 +12,7 @@ type AnswerData struct {
 	ContentHTML string   `json:"content_html"`
 	CreatedTime int64    `json:"created_time"`
 	UpdatedTime int64    `json:"updated_time"`
+	SavedAt     string   `json:"saved_at"`
 	ImageURLs   []string `json:"image_urls"`
 	Tag         string   `json:"tag"`
 	TagColor    string   `json:"tag_color"`
@@ -89,12 +90,11 @@ func GetAnswers(db *sql.DB) ([]AnswerSummary, error) {
 
 func GetAnswerByID(db *sql.DB, id string) (*AnswerData, error) {
 	var data AnswerData
-	var savedAt string
 	err := db.QueryRow(`
 		SELECT answer_id, question_id, title, author_name, content_html, created_time, updated_time, saved_at, tag, tag_color
 		FROM answers
 		WHERE answer_id = ?
-	`, id).Scan(&data.AnswerID, &data.QuestionID, &data.Title, &data.AuthorName, &data.ContentHTML, &data.CreatedTime, &data.UpdatedTime, &savedAt, &data.Tag, &data.TagColor)
+	`, id).Scan(&data.AnswerID, &data.QuestionID, &data.Title, &data.AuthorName, &data.ContentHTML, &data.CreatedTime, &data.UpdatedTime, &data.SavedAt, &data.Tag, &data.TagColor)
 
 	if err != nil {
 		return nil, err
@@ -112,6 +112,11 @@ func UpdateTag(db *sql.DB, id string, tag string, color string) error {
 		_, _ = db.Exec("UPDATE answers SET tag_color = ? WHERE tag = ?", color, tag)
 	}
 	return nil
+}
+
+func UpdateAnswerContent(db *sql.DB, id string, title string, contentHTML string) error {
+	_, err := db.Exec("UPDATE answers SET title = ?, content_html = ? WHERE answer_id = ?", title, contentHTML, id)
+	return err
 }
 
 func DeleteAnswer(db *sql.DB, id string) (int64, error) {
