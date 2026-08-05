@@ -31,7 +31,8 @@
 </template>
 
 <script setup>
-import { ref, watch, inject } from 'vue'
+import { ref, watch } from 'vue'
+import { useArchiveStore } from '../stores/archive'
 
 const props = defineProps({
   answerId: {
@@ -48,7 +49,8 @@ const comments = ref([])
 const loading = ref(false)
 
 const API_BASE = ''
-const apiFetch = inject('apiFetch') // 会在 App.vue 提供
+const store = useArchiveStore()
+const apiFetch = store.apiFetch
 
 const fetchComments = async () => {
   if (!props.answerId) return

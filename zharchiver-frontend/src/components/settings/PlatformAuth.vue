@@ -57,7 +57,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, inject } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { useArchiveStore } from '../../stores/archive'
 import BaseButton from '../common/BaseButton.vue'
 import BaseModal from '../common/BaseModal.vue'
 
@@ -65,7 +66,8 @@ const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const API_WS_QR = `${protocol}//${window.location.host}/api/auth/zhihu/qrcode/ws`
 const API_AUTH_STATUS = '/api/auth/status'
 
-const apiFetch = inject('apiFetch')
+const store = useArchiveStore()
+const apiFetch = store.apiFetch
 
 const showModal = ref(false)
 const wsStatus = ref('connecting') // connecting, loading, qrcode, waiting, success, done, error

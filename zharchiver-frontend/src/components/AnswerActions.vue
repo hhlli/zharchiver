@@ -62,7 +62,8 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
+import { useArchiveStore } from '../stores/archive'
 import BaseModal from './common/BaseModal.vue'
 
 const props = defineProps({
@@ -79,8 +80,9 @@ const commentContent = ref('')
 const loading = ref(false)
 
 const API_BASE = ''
-const apiFetch = inject('apiFetch')
-const showAlert = inject('showAlert')
+const store = useArchiveStore()
+const apiFetch = store.apiFetch
+const showAlert = store.showAlert
 
 const submitComment = async () => {
   if (!commentContent.value.trim()) return

@@ -66,11 +66,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useArchiveStore } from '../../stores/archive'
 import BaseButton from '../common/BaseButton.vue'
 
-const apiFetch = inject('apiFetch')
-const showAlert = inject('showAlert')
+const store = useArchiveStore()
+const apiFetch = store.apiFetch
+const showAlert = store.showAlert
 
 const isPasswordEnabled = ref(false)
 const initialPasswordEnabled = ref(false)
