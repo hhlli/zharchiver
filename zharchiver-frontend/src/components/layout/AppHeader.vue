@@ -1,7 +1,8 @@
 <template>
-  <header class="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-3 flex-shrink-0 select-none">
-    <!-- 左侧：Logo 与 基础控制 -->
-    <div class="flex items-center space-x-3 md:space-x-6">
+  <header class="bg-white border-b border-gray-200 flex-shrink-0 select-none pt-[env(safe-area-inset-top)]">
+    <div class="h-14 flex items-center justify-between px-3">
+      <!-- 左侧：Logo 与 基础控制 -->
+      <div class="flex items-center space-x-3 md:space-x-6">
       <div class="flex items-center space-x-2">
         <!-- Logo: 使用一个更精致的SVG图标代表归档/箱子 -->
         <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
@@ -44,6 +45,7 @@
         <svg class="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span class="hidden md:inline">新建归档</span>
       </button>
+    </div>
     </div>
   </header>
 </template>
