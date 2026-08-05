@@ -1,5 +1,5 @@
 <template>
-  <aside :class="['hidden md:flex inset-y-0 left-0 z-50 w-64 md:w-52 bg-[#f5f5f7] border-r border-gray-200 p-3 flex-col justify-between flex-shrink-0 h-full overflow-y-auto', store.isDesktopSidebarOpen ? 'flex' : 'hidden']">
+  <aside class="flex inset-y-0 left-0 z-50 w-64 md:w-52 bg-[#f5f5f7] border-r border-gray-200 p-3 flex-col justify-between flex-shrink-0 h-full overflow-y-auto">
     
     <!-- 主界面导航模式 -->
     <div v-if="store.currentView === 'home'" class="space-y-6">

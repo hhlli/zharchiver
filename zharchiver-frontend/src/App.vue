@@ -7,7 +7,7 @@
 
     <div class="md:flex-1 md:flex md:overflow-hidden">
       
-      <div class="hidden md:block flex-shrink-0 z-30 h-full">
+      <div v-show="store.isDesktopSidebarOpen" class="hidden md:block flex-shrink-0 z-30 h-full">
         <AppSidebar />
       </div>
 
