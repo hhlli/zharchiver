@@ -21,7 +21,7 @@
           @input="$emit('update:searchQuery', $event.target.value)"
           type="text" 
           placeholder="搜索回答..." 
-          class="w-full bg-gray-200/60 text-xs text-gray-800 pl-7 pr-3 py-1.5 rounded-lg border border-transparent focus:bg-white focus:border-blue-500 focus:outline-none transition"
+          class="w-full h-8 bg-gray-200/60 text-xs text-gray-800 pl-7 pr-3 rounded-[10px] border border-transparent focus:bg-white focus:border-blue-500 focus:outline-none transition appearance-none"
         />
         <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -39,7 +39,7 @@
       <!-- 新增归档按钮 -->
       <button 
         @click="$emit('add-archive')"
-        class="px-2 md:px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition flex items-center md:space-x-1 cursor-pointer shadow-sm"
+        class="w-8 h-8 md:w-auto md:px-3 bg-blue-600 text-white rounded-[10px] text-xs font-medium hover:bg-blue-700 transition flex items-center justify-center md:space-x-1 cursor-pointer shadow-sm flex-shrink-0"
       >
         <svg class="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span class="hidden md:inline">新建归档</span>
