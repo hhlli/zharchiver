@@ -17,12 +17,32 @@
       <div 
         v-for="comment in comments" 
         :key="comment.id"
-        class="bg-gray-50 border border-gray-100 rounded-xl p-4 shadow-sm"
+        class="bg-gray-50 border border-gray-100 rounded-xl p-4 shadow-sm group"
       >
-        <div class="text-[11px] text-gray-400 mb-2 border-b border-gray-200/60 pb-2">
-          添加于 {{ new Date(comment.created_at).toLocaleString() }}
+        <div class="flex items-center justify-between text-[11px] text-gray-400 mb-2 border-b border-gray-200/60 pb-2">
+          <span>添加于 {{ new Date(comment.created_at).toLocaleString() }}</span>
+          <div class="flex items-center space-x-3">
+            <button @click="startEdit(comment)" class="text-gray-400 hover:text-blue-500 transition cursor-pointer" title="编辑">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </button>
+            <button @click="deleteComment(comment)" class="text-gray-400 hover:text-red-500 transition cursor-pointer" title="删除">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
         </div>
-        <div class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+        
+        <div v-if="editingCommentId === comment.id" class="space-y-2">
+          <textarea 
+            v-model="editContent"
+            rows="3"
+            class="w-full text-sm text-gray-700 border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          ></textarea>
+          <div class="flex justify-end space-x-2">
+            <button @click="editingCommentId = null" class="px-3 py-1 text-xs text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-md transition cursor-pointer">取消</button>
+            <button @click="saveEdit(comment)" class="px-3 py-1 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition cursor-pointer" :disabled="savingEdit">保存</button>
+          </div>
+        </div>
+        <div v-else class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
           {{ comment.content }}
         </div>
       </div>
@@ -65,6 +85,56 @@ const fetchComments = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const editingCommentId = ref(null)
+const editContent = ref('')
+const savingEdit = ref(false)
+
+const startEdit = (comment) => {
+  editingCommentId.value = comment.id
+  editContent.value = comment.content
+}
+
+const saveEdit = async (comment) => {
+  if (!editContent.value.trim()) return
+  savingEdit.value = true
+  try {
+    const res = await apiFetch(`${API_BASE}/api/answers/${props.answerId}/comments/${comment.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: editContent.value.trim() })
+    })
+    if (res.ok) {
+      comment.content = editContent.value.trim()
+      editingCommentId.value = null
+    } else {
+      store.showAlert('错误', '更新失败')
+    }
+  } catch (err) {
+    store.showAlert('错误', '网络请求失败')
+  } finally {
+    savingEdit.value = false
+  }
+}
+
+const deleteComment = (comment) => {
+  store.itemToDeleteType = 'comment'
+  store.itemToDeleteCallback = async () => {
+    try {
+      const res = await apiFetch(`${API_BASE}/api/answers/${props.answerId}/comments/${comment.id}`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        comments.value = comments.value.filter(c => c.id !== comment.id)
+      } else {
+        store.showAlert('错误', '删除失败')
+      }
+    } catch (err) {
+      store.showAlert('错误', '网络请求失败')
+    }
+  }
+  store.itemToDelete = comment
 }
 
 watch(() => props.answerId, fetchComments, { immediate: true })

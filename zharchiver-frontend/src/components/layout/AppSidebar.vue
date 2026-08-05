@@ -24,7 +24,7 @@
             @click="selectCategory(tag.name)"
             :class="['w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer', store.activeCategory === tag.name && !store.currentAnswer ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
           >
-            <span :class="['w-2 h-2 rounded-full', bgColors[tag.color] || 'bg-blue-400']"></span>
+            <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: getHexColor(tag.color) }"></span>
             <span class="truncate">{{ tag.name }}</span>
           </button>
         </div>
@@ -104,11 +104,12 @@ const openSettings = () => {
   store.currentAnswer = null
 }
 
-const bgColors = {
-  blue: 'bg-blue-400',
-  red: 'bg-red-400',
-  green: 'bg-green-400',
-  yellow: 'bg-yellow-400',
-  purple: 'bg-purple-400'
+const getHexColor = (colorKey) => {
+  const hexColors = {
+    blue: '#3b82f6', red: '#ef4444', green: '#10b981', yellow: '#f59e0b',
+    purple: '#8b5cf6', pink: '#ec4899', indigo: '#6366f1', teal: '#14b8a6',
+    orange: '#f97316', cyan: '#06b6d4', slate: '#64748b'
+  }
+  return hexColors[colorKey] || hexColors.blue;
 }
 </script>

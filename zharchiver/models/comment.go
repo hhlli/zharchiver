@@ -41,3 +41,13 @@ func AddComment(db *sql.DB, answerID string, content string) error {
 	`, answerID, content)
 	return err
 }
+
+func DeleteComment(db *sql.DB, answerID string, commentID string) error {
+	_, err := db.Exec(`DELETE FROM comments WHERE answer_id = ? AND id = ?`, answerID, commentID)
+	return err
+}
+
+func UpdateComment(db *sql.DB, answerID string, commentID string, content string) error {
+	_, err := db.Exec(`UPDATE comments SET content = ? WHERE answer_id = ? AND id = ?`, content, answerID, commentID)
+	return err
+}

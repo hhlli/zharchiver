@@ -80,4 +80,13 @@ const formatDate = (dateStr) => {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString()
 }
+
+const getHexColor = (colorKey) => {
+  const hexColors = {
+    blue: '#3b82f6', red: '#ef4444', green: '#10b981', yellow: '#f59e0b',
+    purple: '#8b5cf6', pink: '#ec4899', indigo: '#6366f1', teal: '#14b8a6',
+    orange: '#f97316', cyan: '#06b6d4', slate: '#64748b'
+  }
+  return hexColors[colorKey] || hexColors.blue;
+}
 </script>

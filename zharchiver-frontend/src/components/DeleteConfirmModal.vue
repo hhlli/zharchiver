@@ -13,8 +13,14 @@
     
     <!-- Body -->
     <div class="px-6 py-5 text-sm text-gray-600 leading-relaxed">
-      您确定要永久删除归档 <span class="font-bold text-gray-800">"{{ store.itemToDelete?.title }}"</span> 吗？
-      <p class="mt-2 text-xs text-red-500 font-medium">此操作不可逆，将同时清除相关的本地图片文件和评论数据。</p>
+      <template v-if="store.itemToDeleteType === 'answer'">
+        您确定要永久删除归档 <span class="font-bold text-gray-800">"{{ store.itemToDelete?.title }}"</span> 吗？
+        <p class="mt-2 text-xs text-red-500 font-medium">此操作不可逆，将同时清除相关的本地图片文件和评论数据。</p>
+      </template>
+      <template v-else-if="store.itemToDeleteType === 'comment'">
+        您确定要永久删除这条评论/笔记吗？
+        <p class="mt-2 text-xs text-red-500 font-medium">此操作不可逆，删除后无法恢复。</p>
+      </template>
     </div>
     
     <!-- Footer -->

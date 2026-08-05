@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 const API_BASE = ''
 
@@ -19,6 +19,15 @@ export const useArchiveStore = defineStore('archive', () => {
   const answers = ref([])
   const currentAnswer = ref(null)
   const itemToDelete = ref(null)
+  const itemToDeleteType = ref('answer')
+  const itemToDeleteCallback = ref(null)
+
+  watch(itemToDelete, (newVal) => {
+    if (!newVal) {
+      itemToDeleteType.value = 'answer'
+      itemToDeleteCallback.value = null
+    }
+  })
 
   const showGlobalAlert = ref(false)
   const globalAlertTitle = ref('')
@@ -84,6 +93,15 @@ export const useArchiveStore = defineStore('archive', () => {
 
   const confirmDelete = async () => {
     if (!itemToDelete.value) return
+
+    if (itemToDeleteType.value === 'comment') {
+      if (itemToDeleteCallback.value) {
+        await itemToDeleteCallback.value()
+      }
+      itemToDelete.value = null
+      return
+    }
+
     const id = itemToDelete.value.answer_id
     itemToDelete.value = null
     
@@ -148,6 +166,8 @@ export const useArchiveStore = defineStore('archive', () => {
     answers,
     currentAnswer,
     itemToDelete,
+    itemToDeleteType,
+    itemToDeleteCallback,
     showGlobalAlert,
     globalAlertTitle,
     globalAlertMessage,

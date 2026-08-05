@@ -21,17 +21,32 @@
       <div class="space-y-3">
         <label class="text-xs text-gray-500">标签 (可选)</label>
         <div class="flex items-center space-x-2 pt-1">
-          <input 
-            v-model="inputTag"
-            type="text" 
-            list="existing-tags"
-            placeholder="输入或选择标签"
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
-            :disabled="loading"
-          />
-          <datalist id="existing-tags">
-            <option v-for="t in store.tags" :key="t.name" :value="t.name"></option>
-          </datalist>
+          <div class="relative flex-1">
+            <input 
+              v-model="inputTag"
+              type="text" 
+              placeholder="输入或选择标签"
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 pr-7"
+              :disabled="loading"
+              @focus="showTagDropdown = true"
+              @blur="hideTagDropdown"
+            />
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+            
+            <div v-if="showTagDropdown && store.tags.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div 
+                v-for="t in store.tags" 
+                :key="t.name" 
+                @mousedown.prevent="selectExistingTag(t)"
+                class="px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center space-x-2"
+              >
+                <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: hexColors[t.color] || hexColors.blue }"></span>
+                <span class="truncate">{{ t.name }}</span>
+              </div>
+            </div>
+          </div>
           <div class="flex flex-wrap items-center gap-1.5 px-1 flex-shrink-0">
             <button v-for="(hex, c) in hexColors" :key="c" @click="inputTagColor = c" :class="['w-3.5 h-3.5 rounded-full cursor-pointer transition', inputTagColor === c ? 'ring-2 ring-offset-1 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
           </div>
@@ -59,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 
 const store = useArchiveStore()
@@ -69,6 +84,24 @@ const inputTag = ref('')
 const inputTagColor = ref('blue')
 const loading = ref(false)
 const errorMsg = ref('')
+const showTagDropdown = ref(false)
+
+const hideTagDropdown = () => {
+  showTagDropdown.value = false
+}
+
+const selectExistingTag = (t) => {
+  inputTag.value = t.name
+  inputTagColor.value = t.color
+  showTagDropdown.value = false
+}
+
+watch(inputTag, (newVal) => {
+  const existing = store.tags.find(t => t.name === newVal)
+  if (existing) {
+    inputTagColor.value = existing.color
+  }
+})
 
 const hexColors = {
   blue: '#3b82f6',

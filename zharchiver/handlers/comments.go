@@ -49,3 +49,41 @@ func (env *HandlerEnv) handleAddComment(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": "评论添加成功"})
 }
+
+func (env *HandlerEnv) handleDeleteComment(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	commentID := r.PathValue("comment_id")
+	if id == "" || commentID == "" {
+		http.Error(w, "缺少参数", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.DeleteComment(env.db, id, commentID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "已删除"})
+}
+
+func (env *HandlerEnv) handleUpdateComment(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	commentID := r.PathValue("comment_id")
+	if id == "" || commentID == "" {
+		http.Error(w, "缺少参数", http.StatusBadRequest)
+		return
+	}
+
+	var req AddCommentReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Content == "" {
+		http.Error(w, "无效的评论内容", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.UpdateComment(env.db, id, commentID, req.Content); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "已更新"})
+}

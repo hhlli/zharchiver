@@ -27,9 +27,10 @@
         <div class="sm:ml-auto flex items-center space-x-3">
           <div class="flex items-center text-xs">
             <span 
-              @dblclick="startEditTag" 
-              class="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-md font-medium tracking-wider cursor-pointer select-none hover:bg-blue-100 transition"
-              title="双击编辑标签"
+              @click="startEditTag" 
+              class="border px-2 py-0.5 rounded-md font-medium tracking-wider cursor-pointer select-none hover:opacity-80 transition"
+              :style="getTagStyle(store.currentAnswer?.tag_color)"
+              title="点击编辑标签"
             >
               {{ store.currentAnswer?.tag || 'ANSWER' }}
             </span>
@@ -78,7 +79,31 @@
       <div class="space-y-4 pt-2">
         <div class="space-y-2">
           <label class="text-xs text-gray-500">标签名称</label>
-          <input type="text" v-model="editTagValue" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" @keyup.enter="saveTag">
+          <div class="relative">
+            <input 
+              type="text" 
+              v-model="editTagValue" 
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8" 
+              @keyup.enter="saveTag"
+              @focus="showTagDropdown = true"
+              @blur="hideTagDropdown"
+            >
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </div>
+            
+            <div v-if="showTagDropdown && store.tags.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div 
+                v-for="t in store.tags" 
+                :key="t.name" 
+                @mousedown.prevent="selectExistingTag(t)"
+                class="px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center space-x-2"
+              >
+                <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: hexColors[t.color] || hexColors.blue }"></span>
+                <span class="truncate">{{ t.name }}</span>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="space-y-3">
           <label class="text-xs text-gray-500">标签颜色</label>
@@ -103,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import AnswerActions from '../AnswerActions.vue'
 import AnswerComments from '../AnswerComments.vue'
@@ -177,6 +202,24 @@ const onCommentAdded = () => {
 const isEditingTag = ref(false)
 const editTagValue = ref('')
 const editTagColor = ref('blue')
+const showTagDropdown = ref(false)
+
+const hideTagDropdown = () => {
+  showTagDropdown.value = false
+}
+
+const selectExistingTag = (t) => {
+  editTagValue.value = t.name
+  editTagColor.value = t.color
+  showTagDropdown.value = false
+}
+
+watch(editTagValue, (newVal) => {
+  const existing = store.tags.find(t => t.name === newVal)
+  if (existing) {
+    editTagColor.value = existing.color
+  }
+})
 
 const hexColors = {
   blue: '#3b82f6',
@@ -190,6 +233,15 @@ const hexColors = {
   orange: '#f97316',
   cyan: '#06b6d4',
   slate: '#64748b'
+}
+
+const getTagStyle = (colorKey) => {
+  const hex = hexColors[colorKey] || hexColors.blue;
+  return {
+    backgroundColor: hex + '1A',
+    color: hex,
+    borderColor: hex + '33'
+  }
 }
 
 const startEditTag = () => {
