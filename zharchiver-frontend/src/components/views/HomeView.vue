@@ -12,7 +12,7 @@
         v-for="item in store.filteredAnswers" 
         :key="item.answer_id"
         @click="store.selectAnswer(item.answer_id)"
-        class="group bg-white border border-gray-200/80 rounded-xl p-4 hover:shadow-md hover:border-blue-400 transition cursor-pointer flex flex-col justify-between h-32 relative overflow-hidden"
+        class="group bg-white border border-gray-200/80 rounded-xl p-4 hover:shadow-md hover:border-blue-400 transition cursor-pointer flex flex-col justify-between h-full relative overflow-hidden"
       >
         <div class="space-y-2">
           <div class="flex items-center justify-between w-full">
