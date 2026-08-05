@@ -12,9 +12,7 @@
       <h1 class="text-xl md:text-2xl font-bold text-gray-900 leading-snug">{{ store.currentAnswer?.title }}</h1>
       <div class="flex flex-col sm:flex-row sm:items-center text-xs text-gray-500 space-y-2 sm:space-y-0">
         <div class="flex items-center">
-          <span class="font-medium text-gray-700">作者：{{ store.currentAnswer?.author_name }}</span>
-          <span class="mx-2 sm:mx-4">•</span>
-          <span>发布：{{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
+          <span class="font-medium text-gray-700">归档：{{ formatDate(store.currentAnswer?.saved_at) }}</span>
         </div>
         
         <div class="sm:ml-auto flex items-center space-x-3">
@@ -36,6 +34,11 @@
       class="prose prose-sm md:prose-base prose-slate max-w-none text-gray-800 leading-relaxed space-y-4 prose-img:max-w-full prose-img:rounded-lg prose-img:shadow-sm"
       v-html="processHtmlContent(store.currentAnswer?.content_html)"
     ></article>
+
+    <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center justify-center text-sm text-gray-500 space-y-1 bg-gray-50/50 rounded-xl pb-6">
+      <span class="font-medium text-gray-700 mt-4">原文作者：{{ store.currentAnswer?.author_name }}</span>
+      <span class="text-xs">原文发布：{{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
+    </div>
 
     <AnswerComments :answerId="store.currentAnswer?.answer_id" :refreshKey="commentRefreshKey" />
 
@@ -148,5 +151,10 @@ const processHtmlContent = (html) => {
 const formatTimestamp = (ts) => {
   if (!ts) return ''
   return new Date(ts * 1000).toLocaleString()
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString()
 }
 </script>

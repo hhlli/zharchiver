@@ -33,9 +33,8 @@
           </h3>
         </div>
 
-        <div class="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-          <span class="truncate max-w-[90px]">{{ item.author_name }}</span>
-          <span>{{ formatDate(item.saved_at) }}</span>
+        <div class="pt-2 border-t border-gray-100 flex items-center justify-end text-[11px] text-gray-400">
+          <span>归档：{{ formatDate(item.saved_at) }}</span>
         </div>
       </div>
     </div>
@@ -52,15 +51,13 @@
           <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-500 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
           <div class="flex flex-col flex-1 overflow-hidden">
             <span class="text-xs font-medium text-gray-800 line-clamp-2 sm:truncate group-hover:text-blue-600 sm:mb-0 mb-1">{{ item.title }}</span>
-            <div class="flex sm:hidden items-center text-[10px] text-gray-400 space-x-2">
-              <span class="truncate">{{ item.author_name }}</span>
-              <span>{{ formatDate(item.saved_at) }}</span>
+            <div class="flex sm:hidden items-center text-[10px] text-gray-400">
+              <span>归档：{{ formatDate(item.saved_at) }}</span>
             </div>
           </div>
         </div>
         <div class="flex items-center space-x-2 sm:space-x-6 text-[11px] text-gray-400 flex-shrink-0">
-          <span class="hidden sm:inline truncate max-w-[100px]">{{ item.author_name }}</span>
-          <span class="hidden sm:inline">{{ formatDate(item.saved_at) }}</span>
+          <span class="hidden sm:inline">归档：{{ formatDate(item.saved_at) }}</span>
           <button 
             @click.stop="store.itemToDelete = item"
             class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50"
