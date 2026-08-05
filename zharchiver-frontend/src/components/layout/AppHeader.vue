@@ -29,15 +29,12 @@
       </div>
 
       <!-- 分类下拉框 (仅移动端) -->
-      <select 
+      <TagSelectDropdown
         v-if="currentView === 'home'"
-        :value="activeCategory"
-        @change="$emit('update:activeCategory', $event.target.value)"
-        class="md:hidden w-20 sm:w-24 bg-gray-100 text-xs text-gray-700 py-1.5 px-2 rounded-lg border-none focus:ring-0 appearance-none text-center cursor-pointer"
-      >
-        <option value="all">所有</option>
-        <option v-for="tag in tags" :key="tag.name" :value="tag.name">{{ tag.name }}</option>
-      </select>
+        :modelValue="activeCategory"
+        @update:modelValue="$emit('update:activeCategory', $event)"
+        :tags="tags"
+      />
       
       <!-- 新增归档按钮 -->
       <button 
@@ -52,6 +49,8 @@
 </template>
 
 <script setup>
+import TagSelectDropdown from '../common/TagSelectDropdown.vue'
+
 defineProps({
   searchQuery: {
     type: String,
