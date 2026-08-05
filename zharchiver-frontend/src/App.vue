@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen md:h-screen w-full bg-white flex flex-col font-sans antialiased select-none md:overflow-hidden">
+  <div class="min-h-screen md:h-screen w-full bg-white md:flex md:flex-col font-sans antialiased select-none md:overflow-hidden">
     
     <div class="sticky md:static top-0 z-40">
       <AppHeader />
     </div>
 
-    <div class="flex-1 flex md:overflow-hidden">
+    <div class="md:flex-1 md:flex md:overflow-hidden">
       
       <div class="hidden md:block flex-shrink-0 z-30 h-full">
         <AppSidebar />
@@ -24,20 +24,20 @@
       </div>
 
       <!-- 右侧主内容展示区 -->
-      <main class="flex-1 bg-gray-50/30 md:bg-white relative flex flex-col min-w-0 md:h-full">
+      <main class="md:flex-1 bg-gray-50/30 md:bg-white relative md:flex md:flex-col min-w-0 md:h-full">
         
-        <div class="flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text md:overflow-y-auto">
+        <div class="md:flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text md:overflow-y-auto">
         <!-- 删除确认弹窗 -->
         <DeleteConfirmModal />
 
         <!-- 主页视图 -->
-        <div v-if="store.currentView === 'home'" class="h-full">
+        <div v-if="store.currentView === 'home'" class="md:h-full">
           <ArticleDetail v-if="store.currentAnswer" />
           <HomeView v-else />
         </div>
 
         <!-- 设置界面 -->
-        <div v-else-if="store.currentView === 'settings'" class="h-full">
+        <div v-else-if="store.currentView === 'settings'" class="md:h-full">
           <PlatformAuth v-if="store.activeSetting === 'auth'" />
           <DataManagement v-else-if="store.activeSetting === 'data'" />
           <AccountSecurity v-else-if="store.activeSetting === 'security'" />

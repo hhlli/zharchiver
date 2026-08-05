@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto space-y-6 h-full pb-8">
+  <div class="max-w-6xl mx-auto space-y-6 md:h-full pb-8">
     <button 
       @click="store.currentAnswer = null" 
       class="inline-flex items-center space-x-1 text-sm md:text-xs font-medium text-gray-500 hover:text-blue-600 mb-2 md:mb-2 cursor-pointer transition select-none py-2 px-1 -ml-1 md:py-0 md:px-0 md:ml-0"
