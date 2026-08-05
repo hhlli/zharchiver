@@ -148,7 +148,7 @@ const saveConfig = async () => {
     })
     
     if (res.ok) {
-      showAlert('保存成功', 'AI 配置已成功更新！')
+      showAlert('保存成功', '工具配置已成功更新！')
     } else {
       showAlert('保存失败', '请检查网络或后端日志')
     }
