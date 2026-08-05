@@ -54,7 +54,7 @@
           <BaseButton 
             variant="primary"
             :loading="isSaving"
-            @click="saveConfig"
+            @click="saveConfig('ai')"
           >
             保存配置
           </BaseButton>
@@ -97,7 +97,7 @@
           <BaseButton 
             variant="primary"
             :loading="isSaving"
-            @click="saveConfig"
+            @click="saveConfig('tg')"
           >
             保存配置
           </BaseButton>
@@ -139,7 +139,7 @@ onMounted(async () => {
   }
 })
 
-const saveConfig = async () => {
+const saveConfig = async (type) => {
   isSaving.value = true
   try {
     const res = await apiFetch('/api/settings/ai', {
@@ -148,7 +148,11 @@ const saveConfig = async () => {
     })
     
     if (res.ok) {
-      showAlert('保存成功', '工具配置已成功更新！')
+      if (type === 'ai') {
+        showAlert('保存成功', 'AI 配置已成功更新！')
+      } else {
+        showAlert('保存成功', 'Telegram 配置已成功更新！')
+      }
     } else {
       showAlert('保存失败', '请检查网络或后端日志')
     }
