@@ -1,8 +1,8 @@
 <template>
-  <!-- 铺满整个屏幕，改为 min-h-screen 允许页面自然滚动，解决 iOS Safari 地址栏无法收起的问题 -->
-  <div class="min-h-screen w-full bg-white flex flex-col font-sans antialiased select-none">
+  <!-- 铺满整个屏幕，移动端使用 min-h-screen 允许原生滚动，电脑端使用 h-screen 和 overflow-hidden 锁定高度 -->
+  <div class="min-h-screen md:h-screen w-full bg-white flex flex-col font-sans antialiased select-none md:overflow-hidden">
     
-    <div class="sticky top-0 z-40">
+    <div class="sticky md:static top-0 z-40">
       <AppHeader 
         v-model:searchQuery="searchQuery" 
         v-model:activeCategory="activeCategory"
@@ -13,9 +13,9 @@
     </div>
 
     <!-- 2. 主体区 (侧边栏 + 内容视图) -->
-    <div class="flex-1 flex">
+    <div class="flex-1 flex md:overflow-hidden">
       
-      <div class="hidden md:block sticky top-[calc(3.5rem+env(safe-area-inset-top))] h-[calc(100vh-3.5rem-env(safe-area-inset-top))] flex-shrink-0 z-30">
+      <div class="hidden md:block flex-shrink-0 z-30 h-full">
         <AppSidebar 
           v-model:currentView="currentView"
           v-model:activeCategory="activeCategory"
@@ -31,7 +31,7 @@
       <!-- 迷你侧边栏 (仅展开按钮) -->
       <div 
         v-if="!isDesktopSidebarOpen" 
-        class="hidden md:flex flex-col justify-end border-r border-gray-200 bg-[#f5f5f7] flex-shrink-0 sticky top-[calc(3.5rem+env(safe-area-inset-top))] h-[calc(100vh-3.5rem-env(safe-area-inset-top))] z-30"
+        class="hidden md:flex flex-col justify-end border-r border-gray-200 bg-[#f5f5f7] flex-shrink-0 h-full z-30"
       >
         <div class="p-3">
           <button @click="isDesktopSidebarOpen = true" class="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition cursor-pointer flex items-center justify-center" title="展开边栏">
@@ -41,9 +41,9 @@
       </div>
 
       <!-- 右侧主内容展示区 -->
-      <main class="flex-1 bg-gray-50/30 md:bg-white relative flex flex-col min-w-0">
+      <main class="flex-1 bg-gray-50/30 md:bg-white relative flex flex-col min-w-0 md:h-full">
         
-        <div class="flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text">
+        <div class="flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text md:overflow-y-auto">
         <!-- 删除确认弹窗 -->
         <DeleteConfirmModal
           :show="itemToDelete !== null"
