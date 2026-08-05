@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto space-y-6 h-full pb-8">
     <button 
-      @click="$emit('back')" 
+      @click="store.currentAnswer = null" 
       class="inline-flex items-center space-x-1 text-sm md:text-xs font-medium text-gray-500 hover:text-blue-600 mb-2 md:mb-2 cursor-pointer transition select-none py-2 px-1 -ml-1 md:py-0 md:px-0 md:ml-0"
     >
       <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -9,12 +9,12 @@
     </button>
 
     <header class="border-b pb-4 space-y-2">
-      <h1 class="text-xl md:text-2xl font-bold text-gray-900 leading-snug">{{ answer.title }}</h1>
+      <h1 class="text-xl md:text-2xl font-bold text-gray-900 leading-snug">{{ store.currentAnswer?.title }}</h1>
       <div class="flex flex-col sm:flex-row sm:items-center text-xs text-gray-500 space-y-2 sm:space-y-0">
         <div class="flex items-center">
-          <span class="font-medium text-gray-700">作者：{{ answer.author_name }}</span>
+          <span class="font-medium text-gray-700">作者：{{ store.currentAnswer?.author_name }}</span>
           <span class="mx-2 sm:mx-4">•</span>
-          <span>发布：{{ formatTimestamp(answer.created_time) }}</span>
+          <span>发布：{{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
         </div>
         
         <div class="sm:ml-auto flex items-center space-x-3">
@@ -24,20 +24,20 @@
               class="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-0.5 rounded-md font-medium tracking-wider cursor-pointer select-none hover:bg-blue-100 transition"
               title="双击编辑标签"
             >
-              {{ answer.tag || 'ANSWER' }}
+              {{ store.currentAnswer?.tag || 'ANSWER' }}
             </span>
           </div>
-          <AnswerActions :answerId="answer.answer_id" @commentAdded="onCommentAdded" />
+          <AnswerActions :answerId="store.currentAnswer?.answer_id" @commentAdded="onCommentAdded" />
         </div>
       </div>
     </header>
 
     <article 
       class="prose prose-sm md:prose-base prose-slate max-w-none text-gray-800 leading-relaxed space-y-4 prose-img:max-w-full prose-img:rounded-lg prose-img:shadow-sm"
-      v-html="processHtmlContent(answer.content_html)"
+      v-html="processHtmlContent(store.currentAnswer?.content_html)"
     ></article>
 
-    <AnswerComments :answerId="answer.answer_id" :refreshKey="commentRefreshKey" />
+    <AnswerComments :answerId="store.currentAnswer?.answer_id" :refreshKey="commentRefreshKey" />
 
     <!-- 编辑标签弹窗 -->
     <BaseModal 
@@ -80,28 +80,19 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
+import { useArchiveStore } from '../../stores/archive'
 import AnswerActions from '../AnswerActions.vue'
 import AnswerComments from '../AnswerComments.vue'
 import BaseModal from '../common/BaseModal.vue'
+import DOMPurify from 'dompurify'
 
-const props = defineProps({
-  answer: {
-    type: Object,
-    required: true
-  }
-})
-
-const emit = defineEmits(['back', 'refresh'])
+const store = useArchiveStore()
 
 const commentRefreshKey = ref(0)
 const onCommentAdded = () => {
   commentRefreshKey.value++
 }
-
-const API_BASE = ''
-const apiFetch = inject('apiFetch')
-const showAlert = inject('showAlert')
 
 const isEditingTag = ref(false)
 const editTagValue = ref('')
@@ -116,14 +107,16 @@ const hexColors = {
 }
 
 const startEditTag = () => {
-  editTagValue.value = props.answer.tag || ''
-  editTagColor.value = props.answer.tag_color || 'blue'
+  editTagValue.value = store.currentAnswer?.tag || ''
+  editTagColor.value = store.currentAnswer?.tag_color || 'blue'
   isEditingTag.value = true
 }
 
 const saveTag = async () => {
+  if (!store.currentAnswer) return
+
   try {
-    const res = await apiFetch(`/api/answers/${props.answer.answer_id}/tag`, {
+    const res = await store.apiFetch(`/api/answers/${store.currentAnswer.answer_id}/tag`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tag: editTagValue.value.trim(), color: editTagColor.value })
@@ -131,27 +124,24 @@ const saveTag = async () => {
     if (!res.ok) throw new Error("标签更新失败")
     
     // 乐观更新
-    props.answer.tag = editTagValue.value.trim()
-    props.answer.tag_color = editTagColor.value
+    store.currentAnswer.tag = editTagValue.value.trim()
+    store.currentAnswer.tag_color = editTagColor.value
     isEditingTag.value = false
-    emit('refresh')
+    store.fetchAnswersList()
   } catch (err) {
-    showAlert('错误', err.message)
+    store.showAlert('错误', err.message)
   }
 }
-
-import DOMPurify from 'dompurify'
 
 const processHtmlContent = (html) => {
   if (!html) return ''
   const token = localStorage.getItem('token') || ''
   
   const processed = html.replace(/src="\/storage\/([^"]+)"/g, (match, p1) => {
-    const url = `${API_BASE}/storage/${p1}`
+    const url = `${store.API_BASE}/storage/${p1}`
     return token ? `src="${url}?token=${token}"` : `src="${url}"`
   })
   
-  // 使用 DOMPurify 过滤危险代码，防范 XSS 攻击
   return DOMPurify.sanitize(processed)
 }
 

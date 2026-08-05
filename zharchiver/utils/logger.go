@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"encoding/json"
@@ -79,7 +79,6 @@ func BroadcastLog(level, message string) {
 		logHistory = logHistory[len(logHistory)-maxLogHistory:]
 	}
 	
-	// Copy the current clients into a local slice to release lock before I/O
 	var clientsToNotify []*websocket.Conn
 	for client := range wsClients {
 		clientsToNotify = append(clientsToNotify, client)

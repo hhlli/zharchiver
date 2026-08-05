@@ -1,5 +1,5 @@
 <template>
-  <BaseModal :show="show" @close="$emit('cancel')">
+  <BaseModal :show="store.itemToDelete !== null" @close="store.itemToDelete = null">
     <!-- Header -->
     <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-red-50/50">
       <div class="flex items-center space-x-2 text-red-600">
@@ -8,25 +8,25 @@
         </svg>
         <h3 class="font-bold">确认删除</h3>
       </div>
-      <button @click="$emit('cancel')" class="text-gray-400 hover:text-gray-600 transition cursor-pointer">&times;</button>
+      <button @click="store.itemToDelete = null" class="text-gray-400 hover:text-gray-600 transition cursor-pointer">&times;</button>
     </div>
     
     <!-- Body -->
     <div class="px-6 py-5 text-sm text-gray-600 leading-relaxed">
-      您确定要永久删除归档 <span class="font-bold text-gray-800">"{{ title }}"</span> 吗？
+      您确定要永久删除归档 <span class="font-bold text-gray-800">"{{ store.itemToDelete?.title }}"</span> 吗？
       <p class="mt-2 text-xs text-red-500 font-medium">此操作不可逆，将同时清除相关的本地图片文件和评论数据。</p>
     </div>
     
     <!-- Footer -->
     <div class="px-6 py-4 bg-gray-50 flex justify-end space-x-3 border-t border-gray-100">
       <button 
-        @click="$emit('cancel')"
+        @click="store.itemToDelete = null"
         class="px-4 py-1.5 rounded-lg text-sm text-gray-600 border border-gray-300 hover:bg-gray-100 transition cursor-pointer"
       >
         取消
       </button>
       <button 
-        @click="$emit('confirm')"
+        @click="store.confirmDelete"
         class="px-4 py-1.5 rounded-lg text-sm text-white bg-red-600 hover:bg-red-700 transition cursor-pointer font-medium shadow-sm"
       >
         确认删除
@@ -36,17 +36,8 @@
 </template>
 
 <script setup>
+import { useArchiveStore } from '../stores/archive'
 import BaseModal from './common/BaseModal.vue'
-defineProps({
-  show: {
-    type: Boolean,
-    required: true
-  },
-  title: {
-    type: String,
-    default: ''
-  }
-})
 
-defineEmits(['confirm', 'cancel'])
+const store = useArchiveStore()
 </script>

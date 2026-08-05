@@ -1,7 +1,8 @@
-package main
+package services
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"zharchiver/models"
 )
 
 type aiVisionRequest struct {
@@ -46,10 +49,10 @@ type aiExtractedData struct {
 	ContentHTML string `json:"content_html"`
 }
 
-func (s *Server) processImageArchiveTask(imgBytes []byte) (*AnswerData, error) {
-	baseURL := s.getSetting("ai_base_url")
-	apiKey := s.getSetting("ai_api_key")
-	modelName := s.getSetting("ai_model_name")
+func ProcessImageArchiveTask(db *sql.DB, imgBytes []byte) (*models.AnswerData, error) {
+	baseURL := models.GetSetting(db, "ai_base_url")
+	apiKey := models.GetSetting(db, "ai_api_key")
+	modelName := models.GetSetting(db, "ai_model_name")
 
 	if baseURL == "" || apiKey == "" || modelName == "" {
 		return nil, errors.New("AI 助手未完全配置，请在设置中完善信息")
@@ -139,7 +142,7 @@ func (s *Server) processImageArchiveTask(imgBytes []byte) (*AnswerData, error) {
 	uuid := fmt.Sprintf("img_%d", time.Now().UnixNano())
 	now := time.Now().Format("2006-01-02 15:04:05")
 	
-	_, err = s.db.Exec(`
+	_, err = db.Exec(`
 		INSERT INTO answers (answer_id, question_id, title, author_name, author_avatar, content_html, created_time, updated_time, saved_at) 
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, uuid, 0, extracted.Title, extracted.AuthorName, "", extracted.ContentHTML, 0, 0, now)
@@ -148,7 +151,7 @@ func (s *Server) processImageArchiveTask(imgBytes []byte) (*AnswerData, error) {
 		return nil, fmt.Errorf("存入数据库失败: %v", err)
 	}
 
-	return &AnswerData{
+	return &models.AnswerData{
 		AnswerID:    uuid,
 		Title:       extracted.Title,
 		AuthorName:  extracted.AuthorName,

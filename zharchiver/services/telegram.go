@@ -1,7 +1,8 @@
-package main
+package services
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"zharchiver/models"
 )
 
 func sendMessageToTelegram(token, chatID, text string) {
@@ -78,24 +81,8 @@ func answerCallbackQuery(token, callbackQueryID string) {
 	client.Do(req)
 }
 
-func (s *Server) getAllTags() []string {
-	rows, err := s.db.Query("SELECT DISTINCT tag FROM answers WHERE tag != ''")
-	var tags []string
-	if err != nil {
-		return tags
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var tag string
-		if err := rows.Scan(&tag); err == nil {
-			tags = append(tags, tag)
-		}
-	}
-	return tags
-}
-
-func generateTagMarkup(s *Server, answerID string) InlineKeyboardMarkup {
-	tags := s.getAllTags()
+func generateTagMarkup(db *sql.DB, answerID string) InlineKeyboardMarkup {
+	tags := models.GetAllTags(db)
 	var rows [][]InlineKeyboardButton
 	var currentRow []InlineKeyboardButton
 	
@@ -195,14 +182,14 @@ type TelegramUpdateResponse struct {
 	Result []TelegramUpdate `json:"result"`
 }
 
-func startTelegramBotListener(s *Server) {
+func StartTelegramBotListener(db *sql.DB) {
 	go func() {
 		lastUpdateID := 0
 		client := &http.Client{Timeout: 35 * time.Second} // getUpdates has timeout=30
 
 		for {
-			token := s.getSetting("telegram_bot_token")
-			authorizedChatIDStr := s.getSetting("telegram_chat_id")
+			token := models.GetSetting(db, "telegram_bot_token")
+			authorizedChatIDStr := models.GetSetting(db, "telegram_chat_id")
 
 			if token == "" || authorizedChatIDStr == "" {
 				// 未配置 Telegram 机器人，休眠后重试
@@ -262,12 +249,12 @@ func startTelegramBotListener(s *Server) {
 							
 							// 查找该标签已有的颜色
 							var tagColor string
-							err := s.db.QueryRow("SELECT tag_color FROM answers WHERE tag = ? AND tag_color != '' AND tag_color IS NOT NULL LIMIT 1", tag).Scan(&tagColor)
+							err := db.QueryRow("SELECT tag_color FROM answers WHERE tag = ? AND tag_color != '' AND tag_color IS NOT NULL LIMIT 1", tag).Scan(&tagColor)
 							if err != nil || tagColor == "" {
 								tagColor = "blue" // 默认蓝色
 							}
 							
-							s.db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", tag, tagColor, answerID)
+							db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", tag, tagColor, answerID)
 							editMessageText(token, cq.Message.Chat.ID, cq.Message.MessageID, fmt.Sprintf("✅ 归档成功并已添加标签：%s", tag))
 						}
 					} else if strings.HasPrefix(data, "new_tag:") {
@@ -299,11 +286,11 @@ func startTelegramBotListener(s *Server) {
 						newTag := strings.TrimSpace(update.Message.Text)
 						if newTag != "" {
 							var tagColor string
-							err := s.db.QueryRow("SELECT tag_color FROM answers WHERE tag = ? AND tag_color != '' AND tag_color IS NOT NULL LIMIT 1", newTag).Scan(&tagColor)
+							err := db.QueryRow("SELECT tag_color FROM answers WHERE tag = ? AND tag_color != '' AND tag_color IS NOT NULL LIMIT 1", newTag).Scan(&tagColor)
 							if err != nil || tagColor == "" {
 								tagColor = "blue"
 							}
-							s.db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", newTag, tagColor, answerID)
+							db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", newTag, tagColor, answerID)
 							sendMessageToTelegram(token, authorizedChatIDStr, fmt.Sprintf("✅ 成功为归档 %s 添加新标签：%s", answerID, newTag))
 						}
 					}
@@ -320,11 +307,11 @@ func startTelegramBotListener(s *Server) {
 							return
 						}
 						
-						data, err := s.processImageArchiveTask(imgBytes)
+						data, err := ProcessImageArchiveTask(db, imgBytes)
 						if err != nil {
 							sendMessageToTelegram(token, authorizedChatIDStr, fmt.Sprintf("❌ 提取归档失败：\n%v", err))
 						} else {
-							markup := generateTagMarkup(s, data.AnswerID)
+							markup := generateTagMarkup(db, data.AnswerID)
 							sendMessageToTelegramWithMarkup(token, authorizedChatIDStr, fmt.Sprintf("✅ 视觉提取并归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
 						}
 					}(photo.FileID)
@@ -341,11 +328,11 @@ func startTelegramBotListener(s *Server) {
 					go func(targetUrl string) {
 						sendMessageToTelegram(token, authorizedChatIDStr, "收到链接，正在为您归档...")
 						
-						data, err := s.processArchiveTask(targetUrl, "")
+						data, err := ProcessArchiveTask(db, targetUrl, "")
 						if err != nil {
 							sendMessageToTelegram(token, authorizedChatIDStr, fmt.Sprintf("❌ 归档失败：\n%v", err))
 						} else {
-							markup := generateTagMarkup(s, data.AnswerID)
+							markup := generateTagMarkup(db, data.AnswerID)
 							sendMessageToTelegramWithMarkup(token, authorizedChatIDStr, fmt.Sprintf("✅ 归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
 						}
 					}(text)

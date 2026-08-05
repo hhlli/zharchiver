@@ -15,30 +15,30 @@
         </div>
         <button 
           @click="openSettings('security')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'security' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'security' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >账户安全</button>
         <button 
           @click="openSettings('auth')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'auth' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'auth' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >平台鉴权</button>
         <button 
           @click="openSettings('data')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'data' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'data' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >数据管理</button>
         <button 
           @click="openSettings('display')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'display' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'display' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >偏好设置</button>
         <button 
           @click="openSettings('ai')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'ai' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'ai' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >工具</button>
         <button 
           @click="openSettings('logs')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', activeSetting === 'logs' && currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'logs' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
         >日志中心</button>
 
-        <div v-if="currentView === 'settings'" class="border-t border-gray-100 mt-1 pt-1">
+        <div v-if="store.currentView === 'settings'" class="border-t border-gray-100 mt-1 pt-1">
           <button 
             @click="goHome"
             class="w-full text-left px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition cursor-pointer"
@@ -63,20 +63,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useArchiveStore } from '../../stores/archive'
 
-const props = defineProps({
-  currentView: {
-    type: String,
-    required: true
-  },
-  activeSetting: {
-    type: String,
-    required: true
-  }
-})
-
-const emit = defineEmits(['update:currentView', 'update:activeSetting'])
-
+const store = useArchiveStore()
 const isOpen = ref(false)
 
 const toggleMenu = () => {
@@ -84,13 +73,13 @@ const toggleMenu = () => {
 }
 
 const openSettings = (setting) => {
-  emit('update:currentView', 'settings')
-  emit('update:activeSetting', setting)
+  store.currentView = 'settings'
+  store.activeSetting = setting
   isOpen.value = false
 }
 
 const goHome = () => {
-  emit('update:currentView', 'home')
+  store.currentView = 'home'
   isOpen.value = false
 }
 </script>

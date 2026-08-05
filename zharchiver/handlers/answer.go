@@ -1,0 +1,133 @@
+package handlers
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"zharchiver/models"
+	"zharchiver/services"
+	"zharchiver/utils"
+)
+
+type ArchiveRequest struct {
+	URL string `json:"url"`
+	Tag string `json:"tag"`
+}
+
+func (env *HandlerEnv) handleGetAnswers(w http.ResponseWriter, r *http.Request) {
+	list, err := models.GetAnswers(env.db)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(list)
+}
+
+func (env *HandlerEnv) handleGetAnswerByID(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "缺少 id 参数", http.StatusBadRequest)
+		return
+	}
+
+	data, err := models.GetAnswerByID(env.db, id)
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			http.Error(w, "未找到该回答", http.StatusNotFound)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(data)
+}
+
+func (env *HandlerEnv) handleUpdateTag(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "缺少 id 参数", http.StatusBadRequest)
+		return
+	}
+
+	var req struct {
+		Tag   string `json:"tag"`
+		Color string `json:"color"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "解析请求体失败", http.StatusBadRequest)
+		return
+	}
+	if req.Color == "" {
+		req.Color = "blue"
+	}
+
+	if err := models.UpdateTag(env.db, id, req.Tag, req.Color); err != nil {
+		utils.BroadcastLog("ERROR", fmt.Sprintf("更新标签失败 (ID: %s)：%v", id, err))
+		http.Error(w, fmt.Sprintf("更新标签失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.BroadcastLog("INFO", fmt.Sprintf("更新了归档 (ID: %s) 的标签为: %s", id, req.Tag))
+	w.WriteHeader(http.StatusOK)
+}
+
+func (env *HandlerEnv) handleDeleteAnswer(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "缺少 id 参数", http.StatusBadRequest)
+		return
+	}
+
+	rowsAffected, err := models.DeleteAnswer(env.db, id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("删除归档失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if rowsAffected == 0 {
+		utils.BroadcastLog("WARN", fmt.Sprintf("尝试删除归档 (ID: %s)，但未找到该记录", id))
+		http.Error(w, "未找到该归档记录", http.StatusNotFound)
+		return
+	}
+
+	utils.BroadcastLog("INFO", fmt.Sprintf("删除了归档及其评论 (ID: %s)", id))
+
+	imgDir := filepath.Join("storage", "images", id)
+	os.RemoveAll(imgDir)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"code":    0,
+		"message": "删除成功",
+	})
+}
+
+func (env *HandlerEnv) handleArchive(w http.ResponseWriter, r *http.Request) {
+	var req ArchiveRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.URL) == "" {
+		utils.BroadcastLog("ERROR", "收到无效的归档请求: 参数错误")
+		http.Error(w, "请求参数错误", http.StatusBadRequest)
+		return
+	}
+
+	data, err := services.ProcessArchiveTask(env.db, req.URL, req.Tag)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"code":    0,
+		"message": "归档成功",
+		"data":    data,
+	})
+}

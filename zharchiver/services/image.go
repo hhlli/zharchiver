@@ -1,4 +1,4 @@
-package main
+package services
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"zharchiver/models"
 )
 
 func downloadImage(imgURL string, answerID string, index int) (string, error) {
@@ -60,7 +62,7 @@ func downloadImage(imgURL string, answerID string, index int) (string, error) {
 	return "/" + filepath.ToSlash(localPath), nil
 }
 
-func processImages(data *AnswerData) error {
+func ProcessImages(data *models.AnswerData) error {
 	for i, rawURL := range data.ImageURLs {
 		localRelPath, err := downloadImage(rawURL, data.AnswerID, i+1)
 		if err != nil {

@@ -1,17 +1,17 @@
 <template>
   <div class="select-none h-full">
     <!-- 状态提示：暂无数据或无搜索结果 -->
-    <div v-if="answers.length === 0" class="h-64 flex flex-col items-center justify-center text-gray-400 space-y-2">
+    <div v-if="store.filteredAnswers.length === 0" class="h-64 flex flex-col items-center justify-center text-gray-400 space-y-2">
       <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
       <span class="text-sm">暂无匹配的归档内容</span>
     </div>
 
     <!-- 网格视图 (Grid) -->
-    <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div v-if="store.viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       <div 
-        v-for="item in answers" 
+        v-for="item in store.filteredAnswers" 
         :key="item.answer_id"
-        @click="selectAnswer(item.answer_id)"
+        @click="store.selectAnswer(item.answer_id)"
         class="group bg-white border border-gray-200/80 rounded-xl p-4 hover:shadow-md hover:border-blue-400 transition cursor-pointer flex flex-col justify-between h-32 relative overflow-hidden"
       >
         <div class="space-y-2">
@@ -21,7 +21,7 @@
               <span class="text-[10px] font-semibold tracking-wider uppercase text-gray-400">{{ item.tag || 'ANSWER' }}</span>
             </div>
             <button 
-              @click.stop="deleteItem(item)"
+              @click.stop="store.itemToDelete = item"
               class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50"
               title="删除归档"
             >
@@ -43,9 +43,9 @@
     <!-- 列表视图 (List) -->
     <div v-else class="divide-y divide-gray-100 border border-gray-200/80 rounded-xl overflow-hidden">
       <div 
-        v-for="item in answers" 
+        v-for="item in store.filteredAnswers" 
         :key="item.answer_id"
-        @click="selectAnswer(item.answer_id)"
+        @click="store.selectAnswer(item.answer_id)"
         class="px-3 sm:px-4 py-3 hover:bg-blue-50/50 transition cursor-pointer flex items-center justify-between group"
       >
         <div class="flex items-center space-x-3 pr-2 sm:pr-4 flex-1 overflow-hidden">
@@ -62,7 +62,7 @@
           <span class="hidden sm:inline truncate max-w-[100px]">{{ item.author_name }}</span>
           <span class="hidden sm:inline">{{ formatDate(item.saved_at) }}</span>
           <button 
-            @click.stop="deleteItem(item)"
+            @click.stop="store.itemToDelete = item"
             class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50"
             title="删除归档"
           >
@@ -75,26 +75,9 @@
 </template>
 
 <script setup>
-const props = defineProps({
-  answers: {
-    type: Array,
-    required: true
-  },
-  viewMode: {
-    type: String,
-    required: true
-  }
-})
+import { useArchiveStore } from '../../stores/archive'
 
-const emit = defineEmits(['view', 'delete'])
-
-const selectAnswer = (id) => {
-  emit('view', id)
-}
-
-const deleteItem = (item) => {
-  emit('delete', item)
-}
+const store = useArchiveStore()
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''

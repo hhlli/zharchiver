@@ -1,9 +1,9 @@
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  <div v-if="store.showAddModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-gray-100">
       <div class="flex items-center justify-between border-b pb-3">
         <h3 class="text-sm font-semibold text-gray-800">添加知乎回答归档</h3>
-        <button @click="$emit('update:show', false)" class="text-gray-400 hover:text-gray-600 text-lg cursor-pointer">&times;</button>
+        <button @click="store.showAddModal = false" class="text-gray-400 hover:text-gray-600 text-lg cursor-pointer">&times;</button>
       </div>
       
       <div class="space-y-2">
@@ -30,7 +30,7 @@
             :disabled="loading"
           />
           <datalist id="existing-tags">
-            <option v-for="t in tags" :key="t.name" :value="t.name"></option>
+            <option v-for="t in store.tags" :key="t.name" :value="t.name"></option>
           </datalist>
           <div class="flex items-center space-x-1.5 px-1 flex-shrink-0">
             <button v-for="(hex, c) in hexColors" :key="c" @click="inputTagColor = c" :class="['w-4 h-4 rounded-full cursor-pointer transition', inputTagColor === c ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
@@ -40,7 +40,7 @@
 
       <div class="flex justify-end space-x-2 pt-2">
         <button 
-          @click="$emit('update:show', false)"
+          @click="store.showAddModal = false"
           class="px-4 py-1.5 border border-gray-300 text-gray-600 rounded-lg text-xs hover:bg-gray-50 transition cursor-pointer"
           :disabled="loading"
         >
@@ -59,20 +59,10 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref } from 'vue'
+import { useArchiveStore } from '../../stores/archive'
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  },
-  tags: {
-    type: Array,
-    default: () => []
-  }
-})
-
-const emit = defineEmits(['update:show', 'success'])
+const store = useArchiveStore()
 
 const inputUrl = ref('')
 const inputTag = ref('')
@@ -88,9 +78,6 @@ const hexColors = {
   purple: '#8b5cf6'
 }
 
-const apiFetch = inject('apiFetch')
-const API_BASE = ''
-
 const submitArchive = async () => {
   if (!inputUrl.value) {
     errorMsg.value = '请输入链接'
@@ -101,7 +88,7 @@ const submitArchive = async () => {
   errorMsg.value = ''
   
   try {
-    const res = await apiFetch(`${API_BASE}/api/archive`, {
+    const res = await store.apiFetch(`${store.API_BASE}/api/archive`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: inputUrl.value.trim(), tag: inputTag.value.trim(), color: inputTagColor.value })
@@ -115,8 +102,8 @@ const submitArchive = async () => {
     const result = await res.json()
     inputUrl.value = ''
     inputTag.value = ''
-    emit('update:show', false)
-    emit('success', result.data?.answer_id)
+    store.showAddModal = false
+    store.onArchiveSuccess(result.data?.answer_id)
   } catch (err) {
     errorMsg.value = err.message
   } finally {

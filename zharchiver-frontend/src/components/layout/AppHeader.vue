@@ -18,8 +18,7 @@
     <div class="flex items-center space-x-2 md:space-x-4">
       <div class="w-24 sm:w-32 md:w-52 relative">
         <input 
-          :value="searchQuery"
-          @input="$emit('update:searchQuery', $event.target.value)"
+          v-model="store.searchQuery"
           type="text" 
           placeholder="搜索回答..." 
           class="w-full h-8 bg-gray-200/60 text-xs text-gray-800 pl-7 pr-3 rounded-[10px] border border-transparent focus:bg-white focus:border-blue-500 focus:outline-none transition appearance-none"
@@ -31,15 +30,14 @@
 
       <!-- 分类下拉框 (仅移动端) -->
       <TagSelectDropdown
-        v-if="currentView === 'home'"
-        :modelValue="activeCategory"
-        @update:modelValue="$emit('update:activeCategory', $event)"
-        :tags="tags"
+        v-if="store.currentView === 'home'"
+        v-model="store.activeCategory"
+        :tags="store.tags"
       />
       
       <!-- 新增归档按钮 -->
       <button 
-        @click="$emit('add-archive')"
+        @click="store.showAddModal = true"
         class="w-8 h-8 md:w-auto md:px-3 bg-blue-600 text-white rounded-[10px] text-xs font-medium hover:bg-blue-700 transition flex items-center justify-center md:space-x-1 cursor-pointer shadow-sm flex-shrink-0"
       >
         <svg class="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -51,25 +49,8 @@
 </template>
 
 <script setup>
+import { useArchiveStore } from '../../stores/archive'
 import TagSelectDropdown from '../common/TagSelectDropdown.vue'
 
-defineProps({
-  searchQuery: {
-    type: String,
-    default: ''
-  },
-  activeCategory: {
-    type: String,
-    default: 'all'
-  },
-  tags: {
-    type: Array,
-    default: () => []
-  },
-  currentView: {
-    type: String,
-    default: 'home'
-  }
-})
-defineEmits(['update:searchQuery', 'update:activeCategory', 'add-archive'])
+const store = useArchiveStore()
 </script>

@@ -1,6 +1,6 @@
 <template>
   <BaseModal 
-    :show="show"
+    :show="store.showLoginModal"
     contentClass="p-6 space-y-6"
     zIndexClass="z-[90]"
   >
@@ -37,22 +37,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useArchiveStore } from '../../stores/archive'
 import BaseModal from '../common/BaseModal.vue'
 
-const props = defineProps({
-  show: {
-    type: Boolean,
-    default: false
-  }
-})
-
-const emit = defineEmits(['update:show', 'success'])
+const store = useArchiveStore()
 
 const loginPassword = ref('')
 const loginLoading = ref(false)
 const loginErrorMsg = ref('')
-
-const API_BASE = ''
 
 const submitLogin = async () => {
   if (!loginPassword.value.trim()) return
@@ -60,7 +52,7 @@ const submitLogin = async () => {
   loginErrorMsg.value = ''
 
   try {
-    const res = await fetch(`${API_BASE}/api/auth/login`, {
+    const res = await fetch(`${store.API_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: loginPassword.value.trim() })
@@ -72,9 +64,9 @@ const submitLogin = async () => {
 
     const data = await res.json()
     localStorage.setItem('token', data.token)
-    emit('update:show', false)
+    store.showLoginModal = false
     loginPassword.value = ''
-    emit('success')
+    store.fetchAnswersList()
   } catch (err) {
     loginErrorMsg.value = err.message
   } finally {
