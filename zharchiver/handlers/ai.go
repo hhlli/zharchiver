@@ -89,9 +89,9 @@ func (env *HandlerEnv) handleSaveAISettings(w http.ResponseWriter, r *http.Reque
 
 func (env *HandlerEnv) handleTestAIConnection(w http.ResponseWriter, r *http.Request) {
 	var reqPayload struct {
-		BaseURL   string `json:"ai_base_url"`
-		APIKey    string `json:"ai_api_key"`
-		ModelName string `json:"ai_model_name"`
+		BaseURL   string `json:"base_url"`
+		APIKey    string `json:"api_key"`
+		ModelName string `json:"model_name"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&reqPayload); err != nil {
 		http.Error(w, "请求格式错误", http.StatusBadRequest)
