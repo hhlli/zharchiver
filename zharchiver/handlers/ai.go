@@ -13,45 +13,94 @@ import (
 )
 
 func (env *HandlerEnv) handleGetAISettings(w http.ResponseWriter, r *http.Request) {
-	settings := map[string]string{
-		"ai_base_url":        models.GetSetting(env.db, "ai_base_url"),
-		"ai_api_key":         models.GetSetting(env.db, "ai_api_key"),
-		"ai_model_name":      models.GetSetting(env.db, "ai_model_name"),
-		"telegram_bot_token": models.GetSetting(env.db, "telegram_bot_token"),
-		"telegram_chat_id":   models.GetSetting(env.db, "telegram_chat_id"),
+	profilesJSON := models.GetSetting(env.db, "ai_profiles")
+	activeProfileID := models.GetSetting(env.db, "ai_active_profile_id")
+	
+	// 自动向下兼容迁移
+	if profilesJSON == "" {
+		oldBaseURL := models.GetSetting(env.db, "ai_base_url")
+		oldAPIKey := models.GetSetting(env.db, "ai_api_key")
+		oldModelName := models.GetSetting(env.db, "ai_model_name")
+		
+		if oldBaseURL != "" || oldAPIKey != "" || oldModelName != "" {
+			defaultProfile := map[string]string{
+				"id": "default_1",
+				"name": "默认配置",
+				"base_url": oldBaseURL,
+				"api_key": oldAPIKey,
+				"model_name": oldModelName,
+			}
+			profilesList := []map[string]string{defaultProfile}
+			bytes, _ := json.Marshal(profilesList)
+			profilesJSON = string(bytes)
+			activeProfileID = "default_1"
+			
+			models.SetSetting(env.db, "ai_profiles", profilesJSON)
+			models.SetSetting(env.db, "ai_active_profile_id", activeProfileID)
+		} else {
+			profilesJSON = "[]"
+		}
+	}
+
+	var profiles []map[string]string
+	json.Unmarshal([]byte(profilesJSON), &profiles)
+	if profiles == nil {
+		profiles = []map[string]string{}
+	}
+
+	settings := map[string]interface{}{
+		"ai_profiles":          profiles,
+		"ai_active_profile_id": activeProfileID,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(settings)
 }
 
 func (env *HandlerEnv) handleSaveAISettings(w http.ResponseWriter, r *http.Request) {
-	var settings map[string]string
+	var settings struct {
+		Profiles        []map[string]string `json:"ai_profiles"`
+		ActiveProfileID string              `json:"ai_active_profile_id"`
+	}
+	
 	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
 		http.Error(w, "请求格式错误", http.StatusBadRequest)
 		return
 	}
-	models.SetSetting(env.db, "ai_base_url", settings["ai_base_url"])
-	models.SetSetting(env.db, "ai_api_key", settings["ai_api_key"])
-	models.SetSetting(env.db, "ai_model_name", settings["ai_model_name"])
-	models.SetSetting(env.db, "telegram_bot_token", settings["telegram_bot_token"])
-	models.SetSetting(env.db, "telegram_chat_id", settings["telegram_chat_id"])
 	
-	utils.BroadcastLog("INFO", "已更新工具(AI与Telegram)配置")
+	profilesBytes, _ := json.Marshal(settings.Profiles)
+	models.SetSetting(env.db, "ai_profiles", string(profilesBytes))
+	models.SetSetting(env.db, "ai_active_profile_id", settings.ActiveProfileID)
+	
+	// 同步活跃配置到全局旧配置键
+	for _, p := range settings.Profiles {
+		if p["id"] == settings.ActiveProfileID {
+			models.SetSetting(env.db, "ai_base_url", p["base_url"])
+			models.SetSetting(env.db, "ai_api_key", p["api_key"])
+			models.SetSetting(env.db, "ai_model_name", p["model_name"])
+			break
+		}
+	}
+	
+	utils.BroadcastLog("INFO", "已更新 AI 视觉模型配置")
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
 func (env *HandlerEnv) handleTestAIConnection(w http.ResponseWriter, r *http.Request) {
-	var settings map[string]string
-	if err := json.NewDecoder(r.Body).Decode(&settings); err != nil {
+	var reqPayload struct {
+		BaseURL   string `json:"ai_base_url"`
+		APIKey    string `json:"ai_api_key"`
+		ModelName string `json:"ai_model_name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&reqPayload); err != nil {
 		http.Error(w, "请求格式错误", http.StatusBadRequest)
 		return
 	}
 	
-	baseURL := settings["ai_base_url"]
-	apiKey := settings["ai_api_key"]
-	modelName := settings["ai_model_name"]
+	baseURL := reqPayload.BaseURL
+	apiKey := reqPayload.APIKey
+	modelName := reqPayload.ModelName
 	
 	if baseURL == "" || apiKey == "" || modelName == "" {
 		utils.BroadcastLog("WARN", "测试 AI 连通性失败：配置不完整")

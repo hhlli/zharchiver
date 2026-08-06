@@ -93,11 +93,24 @@ func authMiddleware(db *sql.DB, next http.Handler) http.Handler {
 	})
 }
 
+func cacheControlMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" || strings.HasSuffix(r.URL.Path, ".json") {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			w.Header().Set("Pragma", "no-cache")
+			w.Header().Set("Expires", "0")
+		} else if strings.HasPrefix(r.URL.Path, "/assets/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	env := &HandlerEnv{db: db}
 
 	// 静态文件服务
-	mux.Handle("/", http.FileServer(http.Dir("dist")))
+	mux.Handle("/", cacheControlMiddleware(http.FileServer(http.Dir("dist"))))
 	mux.Handle("/storage/", http.StripPrefix("/storage/", http.FileServer(http.Dir("storage"))))
 
 	mux.HandleFunc("GET /api/answers", env.handleGetAnswers)
@@ -105,11 +118,15 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	mux.HandleFunc("DELETE /api/answers/{id}", env.handleDeleteAnswer)
 	mux.HandleFunc("PATCH /api/answers/{id}/tag", env.handleUpdateTag)
 	mux.HandleFunc("PATCH /api/answers/{id}/content", env.handleUpdateAnswer)
+	mux.HandleFunc("PUT /api/tags", env.handleRenameGlobalTag)
+	mux.HandleFunc("DELETE /api/tags", env.handleDeleteGlobalTag)
 	mux.HandleFunc("GET /api/answers/{id}/comments", env.handleGetComments)
 	mux.HandleFunc("POST /api/answers/{id}/comments", env.handleAddComment)
 	mux.HandleFunc("PATCH /api/answers/{id}/comments/{comment_id}", env.handleUpdateComment)
 	mux.HandleFunc("DELETE /api/answers/{id}/comments/{comment_id}", env.handleDeleteComment)
+	mux.HandleFunc("POST /api/answers/{id}/share/telegram", env.handleShareToTelegram)
 	mux.HandleFunc("POST /api/archive", env.handleArchive)
+	mux.HandleFunc("GET /api/media", env.handleGetMedia)
 	mux.HandleFunc("GET /api/logs/ws", utils.WsLogHandler)
 	
 	mux.HandleFunc("GET /api/auth/status", env.handleAuthStatus)
@@ -129,6 +146,11 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	mux.HandleFunc("GET /api/settings/ai", env.handleGetAISettings)
 	mux.HandleFunc("POST /api/settings/ai", env.handleSaveAISettings)
 	mux.HandleFunc("POST /api/settings/ai/test", env.handleTestAIConnection)
+	mux.HandleFunc("GET /api/settings/telegram", env.handleGetTelegramSettings)
+	mux.HandleFunc("POST /api/settings/telegram", env.handleSaveTelegramSettings)
+	mux.HandleFunc("POST /api/settings/telegram/test", env.handleTestTelegramConnection)
+	mux.HandleFunc("GET /api/settings/preferences", env.handleGetPreferences)
+	mux.HandleFunc("POST /api/settings/preferences", env.handleSavePreferences)
 
 	return corsMiddleware(authMiddleware(db, mux))
 }

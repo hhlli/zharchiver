@@ -79,6 +79,57 @@ func (env *HandlerEnv) handleUpdateTag(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (env *HandlerEnv) handleRenameGlobalTag(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		OldTag string `json:"old_tag"`
+		NewTag string `json:"new_tag"`
+		Color  string `json:"color"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "解析请求体失败", http.StatusBadRequest)
+		return
+	}
+	if req.OldTag == "" || req.NewTag == "" {
+		http.Error(w, "标签名称不能为空", http.StatusBadRequest)
+		return
+	}
+	if req.Color == "" {
+		req.Color = "blue"
+	}
+
+	if err := models.RenameGlobalTag(env.db, req.OldTag, req.NewTag, req.Color); err != nil {
+		utils.BroadcastLog("ERROR", fmt.Sprintf("重命名全局标签失败：%v", err))
+		http.Error(w, fmt.Sprintf("重命名标签失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.BroadcastLog("INFO", fmt.Sprintf("成功将标签 '%s' 重命名为 '%s'", req.OldTag, req.NewTag))
+	w.WriteHeader(http.StatusOK)
+}
+
+func (env *HandlerEnv) handleDeleteGlobalTag(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Tag string `json:"tag"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "解析请求体失败", http.StatusBadRequest)
+		return
+	}
+	if req.Tag == "" {
+		http.Error(w, "标签名称不能为空", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.DeleteGlobalTag(env.db, req.Tag); err != nil {
+		utils.BroadcastLog("ERROR", fmt.Sprintf("删除全局标签失败：%v", err))
+		http.Error(w, fmt.Sprintf("删除标签失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	utils.BroadcastLog("INFO", fmt.Sprintf("成功删除了标签 '%s'", req.Tag))
+	w.WriteHeader(http.StatusOK)
+}
+
 func (env *HandlerEnv) handleUpdateAnswer(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	if id == "" {

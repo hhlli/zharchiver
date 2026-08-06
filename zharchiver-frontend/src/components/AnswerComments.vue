@@ -106,13 +106,14 @@ const saveEdit = async (comment) => {
       body: JSON.stringify({ content: editContent.value.trim() })
     })
     if (res.ok) {
-      comment.content = editContent.value.trim()
       editingCommentId.value = null
+      await fetchComments()
     } else {
-      store.showAlert('错误', '更新失败')
+      store.showToast('更新失败', 'error')
     }
   } catch (err) {
-    store.showAlert('错误', '网络请求失败')
+    console.error(err)
+    store.showToast('网络请求失败', 'error')
   } finally {
     savingEdit.value = false
   }
@@ -126,12 +127,13 @@ const deleteComment = (comment) => {
         method: 'DELETE'
       })
       if (res.ok) {
-        comments.value = comments.value.filter(c => c.id !== comment.id)
+        await fetchComments()
       } else {
-        store.showAlert('错误', '删除失败')
+        store.showToast('删除失败', 'error')
       }
     } catch (err) {
-      store.showAlert('错误', '网络请求失败')
+      console.error(err)
+      store.showToast('网络请求失败', 'error')
     }
   }
   store.itemToDelete = comment

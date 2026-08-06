@@ -19,6 +19,21 @@
       <span>添加评论</span>
     </button>
 
+    <!-- 发送至 Telegram 按钮 -->
+    <button 
+      @click="shareToTelegram"
+      :disabled="sharing"
+      class="text-xs text-gray-500 hover:text-blue-500 transition flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+      title="一键推送到 Telegram"
+    >
+      <svg v-if="sharing" class="animate-spin w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+      <span>{{ sharing ? '发送中...' : 'TG' }}</span>
+    </button>
+
     <!-- 评论弹窗 -->
     <BaseModal 
       :show="showModal" 
@@ -79,6 +94,7 @@ const emit = defineEmits(['commentAdded', 'edit'])
 const showModal = ref(false)
 const commentContent = ref('')
 const loading = ref(false)
+const sharing = ref(false)
 
 const API_BASE = ''
 const store = useArchiveStore()
@@ -97,17 +113,40 @@ const submitComment = async () => {
     })
 
     if (res.ok) {
-      commentContent.value = ''
       showModal.value = false
+      commentContent.value = ''
       emit('commentAdded')
     } else {
-      showAlert('评论失败', '评论提交失败')
+      store.showToast('评论提交失败', 'error')
     }
   } catch (err) {
     console.error(err)
-    showAlert('错误', '网络请求失败')
+    store.showToast('网络请求失败', 'error')
   } finally {
     loading.value = false
+  }
+}
+
+const shareToTelegram = async () => {
+  if (sharing.value) return
+  sharing.value = true
+
+  try {
+    const res = await apiFetch(`${API_BASE}/api/answers/${props.answerId}/share/telegram`, {
+      method: 'POST'
+    })
+
+    if (res.ok) {
+      store.showToast('已成功推送到您的 Telegram！')
+    } else {
+      const errText = await res.text()
+      store.showToast('发送失败', 'error')
+    }
+  } catch (err) {
+    console.error('Telegram share failed:', err)
+    store.showToast('网络请求失败', 'error')
+  } finally {
+    sharing.value = false
   }
 }
 </script>

@@ -2,12 +2,12 @@
   <div v-if="store.showAddModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-gray-100">
       <div class="flex items-center justify-between border-b pb-3">
-        <h3 class="text-sm font-semibold text-gray-800">添加知乎回答归档</h3>
+        <h3 class="text-sm font-semibold text-gray-800">添加归档</h3>
         <button @click="store.showAddModal = false" class="text-gray-400 hover:text-gray-600 text-lg cursor-pointer">&times;</button>
       </div>
       
       <div class="space-y-2">
-        <label class="text-xs text-gray-500">知乎回答链接</label>
+        <label class="text-xs text-gray-500">粘贴链接</label>
         <input 
           v-model="inputUrl"
           type="text" 

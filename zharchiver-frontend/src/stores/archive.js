@@ -8,6 +8,7 @@ export const useArchiveStore = defineStore('archive', () => {
   const isDesktopSidebarOpen = ref(true)
   const showAddModal = ref(false)
   const showLoginModal = ref(false)
+  const showTagManageModal = ref(false)
 
   const currentView = ref('home')
   const activeSetting = ref('auth')
@@ -33,6 +34,10 @@ export const useArchiveStore = defineStore('archive', () => {
   const globalAlertTitle = ref('')
   const globalAlertMessage = ref('')
 
+  const toastVisible = ref(false)
+  const toastMessage = ref('')
+  const toastType = ref('success') // 'success', 'error', 'info'
+
   // === Actions ===
   const setViewMode = (mode) => {
     viewMode.value = mode
@@ -43,6 +48,18 @@ export const useArchiveStore = defineStore('archive', () => {
     globalAlertTitle.value = title
     globalAlertMessage.value = message
     showGlobalAlert.value = true
+  }
+
+  let toastTimer = null
+  const showToast = (message, type = 'success') => {
+    toastMessage.value = message
+    toastType.value = type
+    toastVisible.value = true
+    
+    if (toastTimer) clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => {
+      toastVisible.value = false
+    }, 3000)
   }
 
   const apiFetch = async (url, options = {}) => {
@@ -158,6 +175,7 @@ export const useArchiveStore = defineStore('archive', () => {
     isDesktopSidebarOpen,
     showAddModal,
     showLoginModal,
+    showTagManageModal,
     currentView,
     activeSetting,
     viewMode,
@@ -171,9 +189,13 @@ export const useArchiveStore = defineStore('archive', () => {
     showGlobalAlert,
     globalAlertTitle,
     globalAlertMessage,
+    toastVisible,
+    toastMessage,
+    toastType,
     
     setViewMode,
     showAlert,
+    showToast,
     apiFetch,
     fetchAnswersList,
     selectAnswer,

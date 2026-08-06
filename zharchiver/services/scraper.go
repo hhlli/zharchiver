@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"zharchiver/models"
@@ -164,6 +165,10 @@ func ProcessArchiveTask(db *sql.DB, url string, tag string) (*models.AnswerData,
 	utils.BroadcastLog("INFO", fmt.Sprintf("目标链接: %s", url))
 	utils.BroadcastLog("INFO", fmt.Sprintf("标签: %s", tag))
 
+	if strings.Contains(url, "twitter.com") || strings.Contains(url, "x.com") {
+		return ProcessTwitterTask(db, url, tag)
+	}
+
     target, err := parseZhihuLink(url)
     if err != nil {
         utils.BroadcastLog("ERROR", fmt.Sprintf("链接解析失败: %v", err))
@@ -205,5 +210,9 @@ func ProcessArchiveTask(db *sql.DB, url string, tag string) (*models.AnswerData,
     }
     
     utils.BroadcastLog("INFO", "数据库写入成功，归档流程全部完成")
+
+    // 触发自动推送
+    go AutoPushToTelegram(db, data.AnswerID)
+
     return data, nil
 }

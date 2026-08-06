@@ -16,7 +16,7 @@
 
     <!-- 右侧：搜索框 与 新建归档 -->
     <div class="flex items-center space-x-2 md:space-x-4">
-      <div class="w-24 sm:w-32 md:w-52 relative">
+      <div v-if="store.currentView === 'home'" class="w-24 sm:w-32 md:w-52 relative">
         <input 
           v-model="store.searchQuery"
           type="text" 

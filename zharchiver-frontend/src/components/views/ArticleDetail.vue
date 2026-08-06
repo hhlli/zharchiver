@@ -188,7 +188,7 @@ const saveEdit = async () => {
     // 更新左侧列表，确保左侧列表标题也变了
     store.fetchAnswersList()
   } catch (err) {
-    store.showAlert('错误', err.message)
+    store.showToast(err.message, 'error')
   } finally {
     saving.value = false
   }
@@ -267,7 +267,7 @@ const saveTag = async () => {
     isEditingTag.value = false
     store.fetchAnswersList()
   } catch (err) {
-    store.showAlert('错误', err.message)
+    store.showToast(err.message, 'error')
   }
 }
 
@@ -280,7 +280,7 @@ const processHtmlContent = (html) => {
     return token ? `src="${url}?token=${token}"` : `src="${url}"`
   })
   
-  return DOMPurify.sanitize(processed)
+  return DOMPurify.sanitize(processed, { ADD_TAGS: ['video', 'source'], ADD_ATTR: ['controls'] })
 }
 
 const formatTimestamp = (ts) => {

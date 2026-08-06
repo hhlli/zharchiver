@@ -101,15 +101,46 @@
         </div>
       </div>
     </div>
+    <!-- 媒体库浏览 -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mt-6">
+      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+        <h3 class="text-sm font-semibold text-gray-700">视图数据浏览</h3>
+        <span class="text-xs text-gray-400">集中浏览本地所有图文、视频资源</span>
+      </div>
+      <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
+        <div class="flex flex-col pr-0 sm:pr-4">
+          <span class="text-sm font-medium text-gray-700">媒体库</span>
+          <span class="text-xs text-gray-400 mt-1">查看按照归档顺序（由新到旧）排列的所有图片和视频，便于快速检索和全屏播放。</span>
+        </div>
+        <button 
+          @click="showMediaViewer = true"
+          class="flex items-center justify-center space-x-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto flex-shrink-0"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <span>打开媒体库</span>
+        </button>
+      </div>
+    </div>
+    
+    <MediaBrowserModal 
+      v-if="showMediaViewer" 
+      @close="showMediaViewer = false" 
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
+import MediaBrowserModal from '../modals/MediaBrowserModal.vue'
 import BaseButton from '../common/BaseButton.vue'
 
 const store = useArchiveStore()
+const backupLoading = ref(true)
+const backupInfo = ref(null)
+
+const showMediaViewer = ref(false)
+
 const apiFetch = store.apiFetch
 const showAlert = store.showAlert
 const API_BASE = ''
@@ -128,14 +159,14 @@ const sendManualBackup = async () => {
   try {
     const res = await apiFetch(`${API_BASE}/api/backup/telegram/send`, { method: 'POST' })
     if (res.ok) {
-      showAlert('成功', '备份已成功发送至 Telegram！')
+      store.showToast('备份已成功发送至 Telegram！')
     } else {
       const err = await res.text()
-      showAlert('发送失败', err)
+      store.showToast('发送失败', 'error')
     }
-  } catch (e) {
-    console.error(e)
-    showAlert('错误', '网络请求错误')
+  } catch (err) {
+    console.error(err)
+    store.showToast('网络请求错误', 'error')
   } finally {
     sendingBackup.value = false
   }
@@ -207,15 +238,15 @@ const restoreBackup = async (event) => {
     })
     
     if (res.ok) {
-      showAlert('恢复成功', '数据恢复成功！请刷新页面。')
+      store.showToast('数据恢复成功！请刷新页面。')
       setTimeout(() => window.location.reload(), 1500)
     } else {
       const err = await res.text()
-      showAlert('恢复失败', err)
+      store.showToast('恢复失败', 'error')
     }
-  } catch (e) {
-    console.error(e)
-    showAlert('错误', '网络请求错误')
+  } catch (err) {
+    console.error(err)
+    store.showToast('网络请求错误', 'error')
   } finally {
     restoring.value = false
     event.target.value = ''

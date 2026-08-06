@@ -26,6 +26,8 @@ func downloadImage(imgURL string, answerID string, index int) (string, error) {
 		ext = ".webp"
 	} else if strings.Contains(imgURL, ".gif") {
 		ext = ".gif"
+	} else if strings.Contains(imgURL, ".mp4") {
+		ext = ".mp4"
 	}
 
 	fileName := fmt.Sprintf("img_%d%s", index, ext)
@@ -37,7 +39,8 @@ func downloadImage(imgURL string, answerID string, index int) (string, error) {
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	// 视频文件可能比较大，增加超时时间到 60 秒
+	client := &http.Client{Timeout: 60 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err

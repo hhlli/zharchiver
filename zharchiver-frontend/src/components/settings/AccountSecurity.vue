@@ -99,17 +99,19 @@ onMounted(async () => {
 
 const updatePassword = async () => {
   if (isPasswordEnabled.value) {
-    if (initialPasswordEnabled.value && !oldPassword.value) {
-      showAlert('提示', '请填写原密码')
-      return
-    }
-    if (newPassword.value !== confirmPassword.value) {
-      showAlert('提示', '两次输入的密码不一致')
-      return
-    }
-    if (newPassword.value.length < 6) {
-      showAlert('提示', '密码长度至少为 6 位')
-      return
+    if (newPassword.value || confirmPassword.value) {
+      if (!oldPassword.value) {
+        store.showToast('请填写原密码', 'error')
+        return
+      }
+      if (newPassword.value !== confirmPassword.value) {
+        store.showToast('两次输入的密码不一致', 'error')
+        return
+      }
+      if (newPassword.value.length < 6) {
+        store.showToast('密码长度至少为 6 位', 'error')
+        return
+      }
     }
   }
 
@@ -124,7 +126,7 @@ const updatePassword = async () => {
     })
 
     if (res.ok) {
-      showAlert('成功', '账户安全设置已保存')
+      store.showToast('账户安全设置已保存')
       oldPassword.value = ''
       newPassword.value = ''
       confirmPassword.value = ''
@@ -135,12 +137,11 @@ const updatePassword = async () => {
          window.location.reload()
       }
     } else {
-      const errText = await res.text()
-      showAlert('保存失败', errText)
+      store.showToast('保存失败', 'error')
     }
   } catch (error) {
-    console.error('保存请求异常:', error)
-    showAlert('错误', '网络请求失败')
+    console.error(error)
+    store.showToast('网络请求失败', 'error')
   }
 }
 </script>

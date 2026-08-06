@@ -60,9 +60,13 @@
     <!-- 移动端悬浮菜单 (FAB) -->
     <MobileFloatingMenu />
 
+    <!-- 底部通知 Toast -->
+    <ToastNotification />
+
     <!-- 弹窗集群 -->
     <AddArchiveModal />
     <LoginModal />
+    <TagManageModal />
 
     <!-- 全局消息弹窗 -->
     <BaseModal 
@@ -94,6 +98,7 @@ import HomeView from './components/views/HomeView.vue'
 import ArticleDetail from './components/views/ArticleDetail.vue'
 import AddArchiveModal from './components/modals/AddArchiveModal.vue'
 import LoginModal from './components/modals/LoginModal.vue'
+import TagManageModal from './components/modals/TagManageModal.vue'
 
 import PlatformAuth from './components/settings/PlatformAuth.vue'
 import DataManagement from './components/settings/DataManagement.vue'
@@ -104,6 +109,7 @@ import DisplaySettings from './components/settings/DisplaySettings.vue'
 import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import BaseModal from './components/common/BaseModal.vue'
 import BaseButton from './components/common/BaseButton.vue'
+import ToastNotification from './components/common/ToastNotification.vue'
 import MobileFloatingMenu from './components/layout/MobileFloatingMenu.vue'
 
 const store = useArchiveStore()

@@ -114,6 +114,16 @@ func UpdateTag(db *sql.DB, id string, tag string, color string) error {
 	return nil
 }
 
+func RenameGlobalTag(db *sql.DB, oldTag string, newTag string, color string) error {
+	_, err := db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE tag = ?", newTag, color, oldTag)
+	return err
+}
+
+func DeleteGlobalTag(db *sql.DB, tag string) error {
+	_, err := db.Exec("UPDATE answers SET tag = '', tag_color = '' WHERE tag = ?", tag)
+	return err
+}
+
 func UpdateAnswerContent(db *sql.DB, id string, title string, contentHTML string) error {
 	_, err := db.Exec("UPDATE answers SET title = ?, content_html = ? WHERE answer_id = ?", title, contentHTML, id)
 	return err
