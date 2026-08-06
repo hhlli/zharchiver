@@ -195,16 +195,21 @@ func (env *HandlerEnv) handleArchive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := services.ProcessArchiveTask(env.db, req.URL, req.Tag)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	go func(url, tag string) {
+		utils.BroadcastLog("TASK_START", "开始后台归档任务")
+		_, err := services.ProcessArchiveTask(env.db, url, tag)
+		if err != nil {
+			utils.BroadcastLog("ERROR", fmt.Sprintf("后台任务失败: %v", err))
+			utils.BroadcastLog("TASK_FAILED", "归档失败")
+		} else {
+			utils.BroadcastLog("TASK_SUCCESS", "归档成功")
+		}
+	}(req.URL, req.Tag)
 
+	w.WriteHeader(http.StatusAccepted)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"code":    0,
-		"message": "归档成功",
-		"data":    data,
+		"message": "已加入后台解析任务",
 	})
 }

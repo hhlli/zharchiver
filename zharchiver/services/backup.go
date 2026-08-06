@@ -92,7 +92,7 @@ func StartTelegramAutoBackup(db *sql.DB) {
 				utils.BroadcastLog("INFO", "触发定时任务：开始生成自动备份...")
 				var buf bytes.Buffer
 				if err := CreateBackupZip(&buf, db); err == nil {
-					errSend := SendDocumentToTelegramWithErr(token, chatID, buf.Bytes(), "zharchiver_backup_"+todayStr+".zip")
+					errSend := SendDocumentToTelegramWithErr(db, token, chatID, buf.Bytes(), "zharchiver_backup_"+todayStr+".zip")
 					if errSend == nil {
 						models.SetSetting(db, "telegram_last_backup", todayStr)
 						utils.BroadcastLog("INFO", "自动备份已成功发送至 Telegram")
@@ -107,8 +107,12 @@ func StartTelegramAutoBackup(db *sql.DB) {
 	}()
 }
 
-func SendDocumentToTelegramWithErr(token, chatID string, data []byte, filename string) error {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendDocument", token)
+func SendDocumentToTelegramWithErr(db *sql.DB, token, chatID string, data []byte, filename string) error {
+	apiEndpoint := models.GetSetting(db, "telegram_api_endpoint")
+	if apiEndpoint == "" {
+		apiEndpoint = "https://api.telegram.org"
+	}
+	url := fmt.Sprintf("%s/bot%s/sendDocument", apiEndpoint, token)
 	
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -125,7 +129,7 @@ func SendDocumentToTelegramWithErr(token, chatID string, data []byte, filename s
 		return err
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	client := &http.Client{Timeout: 60 * time.Second}
+	client := &http.Client{Timeout: 15 * time.Minute}
 	resp, err := client.Do(req)
 	if err != nil {
 		return err

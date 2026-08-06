@@ -99,6 +99,18 @@
       <div class="p-4 md:p-5">
         <div class="space-y-4">
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Telegram API Endpoint</label>
+            <input 
+              v-model="tgConfig.telegram_api_endpoint" 
+              type="text" 
+              placeholder="默认: https://api.telegram.org" 
+              class="w-full h-10 px-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+            />
+            <p class="text-xs text-gray-500 mt-1">
+              如需突破 50MB 官方限制，请填写您的 Local Telegram Bot API 服务器地址 (例如: http://127.0.0.1:8081)
+            </p>
+          </div>
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Bot Token</label>
             <input 
               v-model="tgConfig.telegram_bot_token" 
@@ -201,7 +213,8 @@ const tgConfig = ref({
   telegram_bot_token: '',
   telegram_chat_id: '',
   telegram_push_bot_token: '',
-  telegram_push_chat_id: ''
+  telegram_push_chat_id: '',
+  telegram_api_endpoint: ''
 })
 
 const activeProfile = computed(() => {

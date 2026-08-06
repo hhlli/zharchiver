@@ -12,7 +12,7 @@
         v-for="item in store.filteredAnswers" 
         :key="item.answer_id"
         @click="store.selectAnswer(item.answer_id)"
-        :class="['group bg-white border border-gray-200/80 rounded-xl px-4 pt-4 pb-1 hover:shadow-md transition cursor-pointer flex flex-col justify-between h-full relative overflow-hidden gap-2', item.question_id === 'twitter' ? 'hover:border-gray-800' : 'hover:border-blue-400']"
+        :class="['group bg-white border border-gray-200/80 rounded-xl px-4 pt-4 pb-1 hover:shadow-md transition cursor-pointer flex flex-col justify-between h-full relative overflow-hidden gap-2', item.question_idß === 'twitter' ? 'hover:border-gray-800' : 'hover:border-blue-400']"
       >
         <div class="space-y-1 flex-1">
           <div class="flex items-center justify-between w-full">

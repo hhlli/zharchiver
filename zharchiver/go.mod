@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/abema/go-mp4 v1.7.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-rod/stealth v0.4.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect

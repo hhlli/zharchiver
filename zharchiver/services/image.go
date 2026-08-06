@@ -11,7 +11,31 @@ import (
 	"time"
 
 	"zharchiver/models"
+	"zharchiver/utils"
 )
+
+type ProgressWriter struct {
+	Total    int64
+	Written  int64
+	FileName string
+	LastTime time.Time
+}
+
+func (pw *ProgressWriter) Write(p []byte) (int, error) {
+	n := len(p)
+	pw.Written += int64(n)
+	
+	if pw.Total > 0 && time.Since(pw.LastTime) > 500*time.Millisecond {
+		percent := int((pw.Written * 100) / pw.Total)
+		if percent > 100 {
+			percent = 100
+		}
+		// 广播进度 PROGRESS|percent|filename
+		utils.BroadcastLog("PROGRESS", fmt.Sprintf("%d|%s", percent, pw.FileName))
+		pw.LastTime = time.Now()
+	}
+	return n, nil
+}
 
 func downloadImage(imgURL string, answerID string, index int) (string, error) {
 	saveDir := filepath.Join("storage", "images", answerID)
@@ -57,7 +81,23 @@ func downloadImage(imgURL string, answerID string, index int) (string, error) {
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, resp.Body)
+	pw := &ProgressWriter{
+		Total:    resp.ContentLength,
+		FileName: fileName,
+		LastTime: time.Now(),
+	}
+
+	// 开始时发送一次0%
+	if pw.Total > 0 {
+		utils.BroadcastLog("PROGRESS", fmt.Sprintf("0|%s", fileName))
+	}
+
+	_, err = io.Copy(out, io.TeeReader(resp.Body, pw))
+	
+	// 完成时发送100%
+	if pw.Total > 0 && err == nil {
+		utils.BroadcastLog("PROGRESS", fmt.Sprintf("100|%s", fileName))
+	}
 	if err != nil {
 		return "", err
 	}

@@ -107,7 +107,7 @@ func (env *HandlerEnv) handleSendTelegramBackup(w http.ResponseWriter, r *http.R
 	}
 
 	todayStr := time.Now().Format("2006-01-02_150405")
-	err := services.SendDocumentToTelegramWithErr(token, chatID, buf.Bytes(), "zharchiver_manual_backup_"+todayStr+".zip")
+	err := services.SendDocumentToTelegramWithErr(env.db, token, chatID, buf.Bytes(), "zharchiver_manual_backup_"+todayStr+".zip")
 	if err != nil {
 		utils.BroadcastLog("ERROR", "手动发送 Telegram 备份失败："+err.Error())
 		http.Error(w, "发送到 Telegram 失败: "+err.Error(), http.StatusInternalServerError)

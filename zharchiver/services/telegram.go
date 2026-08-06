@@ -15,8 +15,8 @@ import (
 	"zharchiver/models"
 )
 
-func sendMessageToTelegram(token, chatID, text string) {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
+func sendMessageToTelegram(db *sql.DB, token, chatID, text string) {
+	url := fmt.Sprintf("%s/bot%s/sendMessage", models.GetTelegramAPIEndpoint(db), token)
 	
 	payload := map[string]string{
 		"chat_id": chatID,
@@ -32,8 +32,8 @@ func sendMessageToTelegram(token, chatID, text string) {
 	client.Do(req)
 }
 
-func sendMessageToTelegramWithMarkup(token, chatID, text string, markup interface{}) {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
+func sendMessageToTelegramWithMarkup(db *sql.DB, token, chatID, text string, markup interface{}) {
+	url := fmt.Sprintf("%s/bot%s/sendMessage", models.GetTelegramAPIEndpoint(db), token)
 	
 	payload := map[string]interface{}{
 		"chat_id": chatID,
@@ -52,8 +52,8 @@ func sendMessageToTelegramWithMarkup(token, chatID, text string, markup interfac
 	client.Do(req)
 }
 
-func editMessageText(token string, chatID int64, messageID int, text string) {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageText", token)
+func editMessageText(db *sql.DB, token string, chatID int64, messageID int, text string) {
+	url := fmt.Sprintf("%s/bot%s/editMessageText", models.GetTelegramAPIEndpoint(db), token)
 	
 	payload := map[string]interface{}{
 		"chat_id":    chatID,
@@ -70,8 +70,8 @@ func editMessageText(token string, chatID int64, messageID int, text string) {
 	client.Do(req)
 }
 
-func answerCallbackQuery(token, callbackQueryID string) {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/answerCallbackQuery", token)
+func answerCallbackQuery(db *sql.DB, token, callbackQueryID string) {
+	url := fmt.Sprintf("%s/bot%s/answerCallbackQuery", models.GetTelegramAPIEndpoint(db), token)
 	
 	payload := map[string]interface{}{
 		"callback_query_id": callbackQueryID,
@@ -119,8 +119,8 @@ type TelegramPhotoSize struct {
 	Height   int    `json:"height"`
 }
 
-func downloadTelegramFile(token, fileID string) ([]byte, error) {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/getFile?file_id=%s", token, fileID)
+func downloadTelegramFile(db *sql.DB, token, fileID string) ([]byte, error) {
+	url := fmt.Sprintf("%s/bot%s/getFile?file_id=%s", models.GetTelegramAPIEndpoint(db), token, fileID)
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Timeout: 30 * time.Second, Transport: tr}
 	resp, err := client.Get(url)
@@ -139,7 +139,7 @@ func downloadTelegramFile(token, fileID string) ([]byte, error) {
 		return nil, fmt.Errorf("getFile failed")
 	}
 	
-	dlUrl := fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", token, fileResp.Result.FilePath)
+	dlUrl := fmt.Sprintf("%s/file/bot%s/%s", models.GetTelegramAPIEndpoint(db), token, fileResp.Result.FilePath)
 	dlResp, err := client.Get(dlUrl)
 	if err != nil {
 		return nil, err
@@ -211,7 +211,7 @@ func StartTelegramBotListener(db *sql.DB) {
 				continue
 			}
 
-			url := fmt.Sprintf("https://api.telegram.org/bot%s/getUpdates?offset=%d&timeout=30", token, lastUpdateID+1)
+			url := fmt.Sprintf("%s/bot%s/getUpdates?offset=%d&timeout=30", models.GetTelegramAPIEndpoint(db), token, lastUpdateID+1)
 			
 			resp, err := client.Get(url)
 			if err != nil {
@@ -263,17 +263,17 @@ func StartTelegramBotListener(db *sql.DB) {
 							}
 							
 							db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", tag, tagColor, answerID)
-							editMessageText(token, cq.Message.Chat.ID, cq.Message.MessageID, fmt.Sprintf("✅ 归档成功并已添加标签：%s", tag))
+							editMessageText(db, token, cq.Message.Chat.ID, cq.Message.MessageID, fmt.Sprintf("✅ 归档成功并已添加标签：%s", tag))
 						}
 					} else if strings.HasPrefix(data, "new_tag:") {
 						parts := strings.SplitN(data, ":", 2)
 						if len(parts) == 2 {
 							answerID := parts[1]
 							markup := ForceReply{ForceReply: true}
-							sendMessageToTelegramWithMarkup(token, strconv.FormatInt(cq.Message.Chat.ID, 10), fmt.Sprintf("为归档 %s 输入新标签：", answerID), markup)
+							sendMessageToTelegramWithMarkup(db, token, strconv.FormatInt(cq.Message.Chat.ID, 10), fmt.Sprintf("为归档 %s 输入新标签：", answerID), markup)
 						}
 					}
-					answerCallbackQuery(token, cq.ID)
+					answerCallbackQuery(db, token, cq.ID)
 					continue
 				}
 
@@ -299,7 +299,7 @@ func StartTelegramBotListener(db *sql.DB) {
 								tagColor = "blue"
 							}
 							db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", newTag, tagColor, answerID)
-							sendMessageToTelegram(token, authorizedChatIDStr, fmt.Sprintf("✅ 成功为归档 %s 添加新标签：%s", answerID, newTag))
+							sendMessageToTelegram(db, token, authorizedChatIDStr, fmt.Sprintf("✅ 成功为归档 %s 添加新标签：%s", answerID, newTag))
 						}
 					}
 					continue
@@ -308,19 +308,19 @@ func StartTelegramBotListener(db *sql.DB) {
 				if len(update.Message.Photo) > 0 {
 					photo := update.Message.Photo[len(update.Message.Photo)-1]
 					go func(fileID string) {
-						sendMessageToTelegram(token, authorizedChatIDStr, "收到图片，正在召唤 AI 视觉提取...")
-						imgBytes, err := downloadTelegramFile(token, fileID)
+						sendMessageToTelegram(db, token, authorizedChatIDStr, "收到图片，正在召唤 AI 视觉提取...")
+						imgBytes, err := downloadTelegramFile(db, token, fileID)
 						if err != nil {
-							sendMessageToTelegram(token, authorizedChatIDStr, "❌ 图片下载失败")
+							sendMessageToTelegram(db, token, authorizedChatIDStr, "❌ 图片下载失败")
 							return
 						}
 						
 						data, err := ProcessImageArchiveTask(db, imgBytes)
 						if err != nil {
-							sendMessageToTelegram(token, authorizedChatIDStr, fmt.Sprintf("❌ 提取归档失败：\n%v", err))
+							sendMessageToTelegram(db, token, authorizedChatIDStr, fmt.Sprintf("❌ 提取归档失败：\n%v", err))
 						} else {
 							markup := generateTagMarkup(db, data.AnswerID)
-							sendMessageToTelegramWithMarkup(token, authorizedChatIDStr, fmt.Sprintf("✅ 视觉提取并归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
+							sendMessageToTelegramWithMarkup(db, token, authorizedChatIDStr, fmt.Sprintf("✅ 视觉提取并归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
 						}
 					}(photo.FileID)
 					continue
@@ -334,14 +334,14 @@ func StartTelegramBotListener(db *sql.DB) {
 				if strings.Contains(text, "zhihu.com") {
 					// 发送收到反馈
 					go func(targetUrl string) {
-						sendMessageToTelegram(token, authorizedChatIDStr, "收到链接，正在为您归档...")
+						sendMessageToTelegram(db, token, authorizedChatIDStr, "收到链接，正在为您归档...")
 						
 						data, err := ProcessArchiveTask(db, targetUrl, "")
 						if err != nil {
-							sendMessageToTelegram(token, authorizedChatIDStr, fmt.Sprintf("❌ 归档失败：\n%v", err))
+							sendMessageToTelegram(db, token, authorizedChatIDStr, fmt.Sprintf("❌ 归档失败：\n%v", err))
 						} else {
 							markup := generateTagMarkup(db, data.AnswerID)
-							sendMessageToTelegramWithMarkup(token, authorizedChatIDStr, fmt.Sprintf("✅ 归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
+							sendMessageToTelegramWithMarkup(db, token, authorizedChatIDStr, fmt.Sprintf("✅ 归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
 						}
 					}(text)
 				}

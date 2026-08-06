@@ -86,6 +86,8 @@
       </div>
     </BaseModal>
 
+    <!-- 悬浮的后台进度条组件 -->
+    <GlobalProgress />
   </div>
 </template>
 
@@ -98,6 +100,7 @@ import HomeView from './components/views/HomeView.vue'
 import ArticleDetail from './components/views/ArticleDetail.vue'
 import AddArchiveModal from './components/modals/AddArchiveModal.vue'
 import LoginModal from './components/modals/LoginModal.vue'
+import GlobalProgress from './components/common/GlobalProgress.vue'
 import TagManageModal from './components/modals/TagManageModal.vue'
 
 import PlatformAuth from './components/settings/PlatformAuth.vue'

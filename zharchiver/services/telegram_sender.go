@@ -53,14 +53,17 @@ func splitText(text string, limit int) []string {
 }
 
 type MediaItem struct {
-	Type  string `json:"type"`
-	Media string `json:"media"`
-	Caption string `json:"caption,omitempty"`
+	Type              string `json:"type"`
+	Media             string `json:"media"`
+	Caption           string `json:"caption,omitempty"`
+	SupportsStreaming bool   `json:"supports_streaming,omitempty"`
+	Width             int    `json:"width,omitempty"`
+	Height            int    `json:"height,omitempty"`
 }
 
 // sendMediaGroup 发送媒体组
-func sendMediaGroup(token, chatID string, mediaPaths []string, caption string, replyToMessageID int) (int, error) {
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMediaGroup", token)
+func sendMediaGroup(apiEndpoint, token, chatID string, mediaPaths []string, caption string, replyToMessageID int) (int, error) {
+	url := fmt.Sprintf("%s/bot%s/sendMediaGroup", apiEndpoint, token)
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -82,7 +85,21 @@ func sendMediaGroup(token, chatID string, mediaPaths []string, caption string, r
 		
 		item := MediaItem{
 			Type:  mediaType,
-			Media: "attach://" + attachKey,
+			Media: fmt.Sprintf("attach://media%d", i),
+		}
+		
+		if mediaType == "video" {
+			item.SupportsStreaming = true
+			
+			localPath := filepath.Join("storage", path)
+			if strings.HasPrefix(path, "/") {
+				localPath = filepath.Join("storage", path[1:])
+			}
+			w, h, err := utils.GetVideoDimensions(localPath)
+			if err == nil && w > 0 && h > 0 {
+				item.Width = w
+				item.Height = h
+			}
 		}
 		
 		// 仅把标题/文字放在第一张媒体上
@@ -128,7 +145,7 @@ func sendMediaGroup(token, chatID string, mediaPaths []string, caption string, r
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-	client := &http.Client{Timeout: 60 * time.Second, Transport: tr} // 上传时间可能较长
+	client := &http.Client{Timeout: 15 * time.Minute, Transport: tr} // 上传大文件可能需要较长时间
 	resp, err := client.Do(req)
 	if err != nil {
 		return 0, err
@@ -153,12 +170,12 @@ func sendMediaGroup(token, chatID string, mediaPaths []string, caption string, r
 }
 
 // sendText 发送普通文本消息，超长自动切分
-func sendText(token, chatID string, text string, replyToMessageID int) (int, error) {
+func sendText(apiEndpoint, token, chatID string, text string, replyToMessageID int) (int, error) {
 	chunks := splitText(text, 4000)
 	var lastMsgID int
 
 	for i, chunk := range chunks {
-		url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
+		url := fmt.Sprintf("%s/bot%s/sendMessage", apiEndpoint, token)
 		payload := map[string]interface{}{
 			"chat_id": chatID,
 			"text":    chunk,
@@ -201,7 +218,8 @@ func sendText(token, chatID string, text string, replyToMessageID int) (int, err
 }
 
 // ShareAnswerToTelegram 发送完整的归档内容到 TG
-func ShareAnswerToTelegram(token, chatID string, data *models.AnswerData) error {
+func ShareAnswerToTelegram(db *sql.DB, token, chatID string, data *models.AnswerData) error {
+	apiEndpoint := models.GetTelegramAPIEndpoint(db)
 	// 1. 准备文字内容
 	header := fmt.Sprintf("📄 【%s】\n👤 作者：%s\n\n", data.Title, data.AuthorName)
 	rawText := stripHTML(data.ContentHTML)
@@ -222,7 +240,7 @@ func ShareAnswerToTelegram(token, chatID string, data *models.AnswerData) error 
 
 	// 场景 A: 没有媒体文件，直接发纯文本
 	if len(mediaChunks) == 0 {
-		_, err = sendText(token, chatID, fullText, 0)
+		_, err = sendText(apiEndpoint, token, chatID, fullText, 0)
 		return err
 	}
 
@@ -247,14 +265,14 @@ func ShareAnswerToTelegram(token, chatID string, data *models.AnswerData) error 
 			// TG 如果只有一个媒体，不能使用 MediaGroup，需要降级到 sendPhoto / sendVideo。
 			// 为保持简单且复用逻辑，我们可以强行用 sendPhoto/sendVideo 接口，或在 sendMediaGroup 里处理。
 			// 我们写一个辅助函数或使用现成的 API。这里直接处理：
-			msgID, err := sendSingleMedia(token, chatID, chunk[0], chunkCaption, lastMessageID)
+			msgID, err := sendSingleMedia(apiEndpoint, token, chatID, chunk[0], chunkCaption, lastMessageID)
 			if err != nil {
 				return err
 			}
 			lastMessageID = msgID
 		} else {
 			// 正常 2~10 张图的专辑
-			msgID, err := sendMediaGroup(token, chatID, chunk, chunkCaption, lastMessageID)
+			msgID, err := sendMediaGroup(apiEndpoint, token, chatID, chunk, chunkCaption, lastMessageID)
 			if err != nil {
 				return err
 			}
@@ -264,7 +282,7 @@ func ShareAnswerToTelegram(token, chatID string, data *models.AnswerData) error 
 
 	// 如果有未发完的纯文本（因为 caption 超长），则用 sendMessage 回复发送
 	if remainingText != "" {
-		_, err = sendText(token, chatID, "...接上文：\n"+remainingText, lastMessageID)
+		_, err = sendText(apiEndpoint, token, chatID, "...接上文：\n"+remainingText, lastMessageID)
 		if err != nil {
 			return err
 		}
@@ -303,7 +321,7 @@ func AutoPushToTelegram(db *sql.DB, answerID string) {
 		}
 	}
 
-	err = ShareAnswerToTelegram(token, chatID, data)
+	err = ShareAnswerToTelegram(db, token, chatID, data)
 	if err != nil {
 		utils.BroadcastLog("ERROR", "自动推送失败: " + err.Error())
 	} else {
@@ -312,7 +330,7 @@ func AutoPushToTelegram(db *sql.DB, answerID string) {
 }
 
 // sendSingleMedia 单图/单视频发送
-func sendSingleMedia(token, chatID string, mediaPath string, caption string, replyToMessageID int) (int, error) {
+func sendSingleMedia(apiEndpoint, token, chatID string, mediaPath string, caption string, replyToMessageID int) (int, error) {
 	ext := strings.ToLower(filepath.Ext(mediaPath))
 	method := "sendPhoto"
 	fileKey := "photo"
@@ -321,21 +339,30 @@ func sendSingleMedia(token, chatID string, mediaPath string, caption string, rep
 		fileKey = "video"
 	}
 
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/%s", token, method)
+	url := fmt.Sprintf("%s/bot%s/%s", apiEndpoint, token, method)
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
 	writer.WriteField("chat_id", chatID)
+	
+	localPath := filepath.Join("storage", mediaPath)
+	if strings.HasPrefix(mediaPath, "/") {
+		localPath = filepath.Join("storage", mediaPath[1:])
+	}
+	
+	if method == "sendVideo" {
+		writer.WriteField("supports_streaming", "true")
+		w, h, err := utils.GetVideoDimensions(localPath)
+		if err == nil && w > 0 && h > 0 {
+			writer.WriteField("width", fmt.Sprintf("%d", w))
+			writer.WriteField("height", fmt.Sprintf("%d", h))
+		}
+	}
 	if replyToMessageID > 0 {
 		writer.WriteField("reply_to_message_id", fmt.Sprintf("%d", replyToMessageID))
 	}
 	if caption != "" {
 		writer.WriteField("caption", caption)
-	}
-
-	localPath := filepath.Join("storage", mediaPath)
-	if strings.HasPrefix(mediaPath, "/") {
-		localPath = filepath.Join("storage", mediaPath[1:])
 	}
 
 	file, err := os.Open(localPath)
@@ -354,7 +381,7 @@ func sendSingleMedia(token, chatID string, mediaPath string, caption string, rep
 	req, _ := http.NewRequest("POST", url, body)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-	client := &http.Client{Timeout: 60 * time.Second, Transport: tr}
+	client := &http.Client{Timeout: 15 * time.Minute, Transport: tr}
 	
 	resp, err := client.Do(req)
 	if err != nil {

@@ -17,6 +17,7 @@ func (env *HandlerEnv) handleGetTelegramSettings(w http.ResponseWriter, r *http.
 		"telegram_chat_id":        models.GetSetting(env.db, "telegram_chat_id"),
 		"telegram_push_bot_token": models.GetSetting(env.db, "telegram_push_bot_token"),
 		"telegram_push_chat_id":   models.GetSetting(env.db, "telegram_push_chat_id"),
+		"telegram_api_endpoint":   models.GetSetting(env.db, "telegram_api_endpoint"),
 	})
 }
 
@@ -31,6 +32,7 @@ func (env *HandlerEnv) handleSaveTelegramSettings(w http.ResponseWriter, r *http
 	models.SetSetting(env.db, "telegram_chat_id", settings["telegram_chat_id"])
 	models.SetSetting(env.db, "telegram_push_bot_token", settings["telegram_push_bot_token"])
 	models.SetSetting(env.db, "telegram_push_chat_id", settings["telegram_push_chat_id"])
+	models.SetSetting(env.db, "telegram_api_endpoint", settings["telegram_api_endpoint"])
 	
 	utils.BroadcastLog("INFO", "已更新 Telegram 机器人配置")
 
@@ -45,6 +47,7 @@ func (env *HandlerEnv) handleTestTelegramConnection(w http.ResponseWriter, r *ht
 		ChatID       string `json:"telegram_chat_id"`
 		PushBotToken string `json:"telegram_push_bot_token"`
 		PushChatID   string `json:"telegram_push_chat_id"`
+		ApiEndpoint  string `json:"telegram_api_endpoint"`
 	}
 
 	var req TelegramTestReq
@@ -67,7 +70,15 @@ func (env *HandlerEnv) handleTestTelegramConnection(w http.ResponseWriter, r *ht
 		return
 	}
 
-	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", token)
+	apiEndpoint := req.ApiEndpoint
+	if apiEndpoint == "" {
+		apiEndpoint = "https://api.telegram.org"
+	}
+	if apiEndpoint[len(apiEndpoint)-1] == '/' {
+		apiEndpoint = apiEndpoint[:len(apiEndpoint)-1]
+	}
+
+	url := fmt.Sprintf("%s/bot%s/sendMessage", apiEndpoint, token)
 	reqBody := map[string]interface{}{
 		"chat_id": chatID,
 		"text":    msgText,

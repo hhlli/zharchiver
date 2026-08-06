@@ -138,11 +138,10 @@ const submitArchive = async () => {
       throw new Error(errText || '归档请求失败')
     }
 
-    const result = await res.json()
     inputUrl.value = ''
     inputTag.value = ''
     store.showAddModal = false
-    store.onArchiveSuccess(result.data?.answer_id)
+    store.showToast('已加入后台解析任务，请留意页面底部进度条')
   } catch (err) {
     errorMsg.value = err.message
   } finally {

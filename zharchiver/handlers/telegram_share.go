@@ -49,7 +49,7 @@ func (env *HandlerEnv) handleShareToTelegram(w http.ResponseWriter, r *http.Requ
 
 	// 3. 执行推送
 	utils.BroadcastLog("INFO", "=== 开始手动推送归档到 Telegram ===")
-	err = services.ShareAnswerToTelegram(token, chatID, data)
+	err = services.ShareAnswerToTelegram(env.db, token, chatID, data)
 	if err != nil {
 		utils.BroadcastLog("ERROR", "推送失败: "+err.Error())
 		http.Error(w, "推送失败: "+err.Error(), http.StatusInternalServerError)
