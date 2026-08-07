@@ -59,8 +59,9 @@ func ProcessImageArchiveTask(db *sql.DB, imgBytes []byte) (*models.AnswerData, e
 		return nil, errors.New("AI 助手未完全配置，请在设置中完善信息")
 	}
 
+	mimeType := http.DetectContentType(imgBytes)
 	base64Img := base64.StdEncoding.EncodeToString(imgBytes)
-	dataURL := fmt.Sprintf("data:image/jpeg;base64,%s", base64Img)
+	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64Img)
 
 	prompt := `你是一个专门提取截图信息的内容提取器。请识别截图中的问答内容。
 提取出：
