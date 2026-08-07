@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -137,15 +138,36 @@ type TelegramPhotoSize struct {
 }
 
 func downloadTelegramFile(db *sql.DB, token, fileID string) ([]byte, error) {
-	url := fmt.Sprintf("%s/bot%s/getFile?file_id=%s", models.GetTelegramAPIEndpoint(db), token, fileID)
+	endpoint := models.GetTelegramAPIEndpoint(db)
+	b, err := tryDownloadFile(endpoint, token, fileID)
+	if err == nil {
+		return b, nil
+	}
+
+	// 如果自定义端点失败，尝试使用官方 API 完全重试
+	if !strings.Contains(endpoint, "api.telegram.org") {
+		fmt.Printf("DEBUG: Custom endpoint failed (%v), falling back to official API\n", err)
+		b2, err2 := tryDownloadFile("https://api.telegram.org", token, fileID)
+		if err2 == nil {
+			return b2, nil
+		}
+		return nil, fmt.Errorf("自定义和官方 API 均下载失败: %v", err2)
+	}
+
+	return nil, err
+}
+
+func tryDownloadFile(endpoint, token, fileID string) ([]byte, error) {
+	url := fmt.Sprintf("%s/bot%s/getFile?file_id=%s", endpoint, token, fileID)
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Timeout: 30 * time.Second, Transport: tr}
+	
 	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	var fileResp struct {
 		Ok     bool `json:"ok"`
 		Result struct {
@@ -155,29 +177,28 @@ func downloadTelegramFile(db *sql.DB, token, fileID string) ([]byte, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&fileResp); err != nil || !fileResp.Ok {
 		return nil, fmt.Errorf("getFile failed")
 	}
-	
-	dlUrl := fmt.Sprintf("%s/file/bot%s/%s", models.GetTelegramAPIEndpoint(db), token, fileResp.Result.FilePath)
+
+	// 如果反回了绝对路径，说明 Telegram 服务端运行在 --local 模式
+	if strings.HasPrefix(fileResp.Result.FilePath, "/") {
+		// 尝试直接在本地文件系统读取
+		b, err := os.ReadFile(fileResp.Result.FilePath)
+		if err == nil {
+			return b, nil
+		}
+		return nil, fmt.Errorf("local file read failed: %v", err)
+	}
+
+	dlUrl := fmt.Sprintf("%s/file/bot%s/%s", endpoint, token, fileResp.Result.FilePath)
 	dlResp, err := client.Get(dlUrl)
 	if err != nil {
 		return nil, err
 	}
-	
-	// 如果自定义端点下载失败（常见的反代不代理 /file 路径的情况），则降级使用官方 API 尝试下载
-	if dlResp.StatusCode != http.StatusOK {
-		dlResp.Body.Close()
-		dlUrl = fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", token, fileResp.Result.FilePath)
-		dlResp, err = client.Get(dlUrl)
-		if err != nil {
-			return nil, err
-		}
-	}
-	
 	defer dlResp.Body.Close()
 
 	if dlResp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("下载文件失败，Telegram 返回状态码: %d", dlResp.StatusCode)
+		return nil, fmt.Errorf("HTTP download failed with status %d", dlResp.StatusCode)
 	}
-	
+
 	return io.ReadAll(dlResp.Body)
 }
 
@@ -363,7 +384,7 @@ func StartTelegramBotListener(db *sql.DB) {
 					continue
 				}
 
-				if strings.Contains(text, "zhihu.com") {
+				if strings.HasPrefix(text, "http") || strings.Contains(text, "zhihu.com") || strings.Contains(text, "x.com") || strings.Contains(text, "twitter.com") {
 					// 发送收到反馈
 					go func(targetUrl string) {
 						sendMessageToTelegram(db, token, authorizedChatIDStr, "收到链接，正在为您归档...")

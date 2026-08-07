@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -67,6 +68,9 @@ func BroadcastLog(level, message string) {
 		Level:   level,
 		Message: message,
 	}
+
+	// 打印到控制台日志
+	log.Printf("[%s] %s\n", level, message)
 
 	msg, err := json.Marshal(entry)
 	if err != nil {

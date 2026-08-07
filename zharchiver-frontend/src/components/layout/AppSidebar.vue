@@ -88,7 +88,7 @@
         <button @click="store.isDesktopSidebarOpen = false" class="hidden md:flex p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition cursor-pointer items-center justify-center" title="收起边栏">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
         </button>
-        <div class="text-[11px] text-gray-400 font-mono hidden md:block">ZHArchiver v1.1.2</div>
+        <div class="text-[11px] text-gray-400 font-mono hidden md:block">ZHArchiver v1.1.3</div>
       </div>
       <button @click="openSettings" :class="['p-1 rounded transition cursor-pointer', store.currentView === 'settings' ? 'text-gray-800 bg-gray-200' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200']" title="设置">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
