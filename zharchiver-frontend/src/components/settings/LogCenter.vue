@@ -51,7 +51,7 @@ const filteredLogs = computed(() => {
 // 日志等级着色
 const levelColor = (level) => {
   switch (level) {
-    case 'INFO': return 'text-blue-600'
+    case 'INFO': return 'text-brand'
     case 'WARN': return 'text-yellow-600'
     case 'ERROR': return 'text-red-600'
     default: return 'text-gray-500'

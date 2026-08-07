@@ -6,7 +6,7 @@
   >
     <div class="text-center space-y-2">
       <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
       </div>
       <h3 class="text-xl font-bold text-gray-900">需要验证身份</h3>
       <p class="text-sm text-gray-500">此项目已开启安全保护，请输入密码</p>
@@ -24,13 +24,14 @@
         />
         <p v-if="loginErrorMsg" class="text-red-500 text-xs mt-1">{{ loginErrorMsg }}</p>
       </div>
-      <button 
+      <AppButton
         type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-3 text-sm font-medium transition cursor-pointer disabled:bg-gray-400"
-        :disabled="loginLoading || !loginPassword.trim()"
+        class="w-full py-3 text-sm rounded-xl"
+        :loading="loginLoading"
+        :disabled="!loginPassword.trim()"
       >
         {{ loginLoading ? '验证中...' : '确认进入' }}
-      </button>
+      </AppButton>
     </form>
   </BaseModal>
 </template>
@@ -39,6 +40,7 @@
 import { ref } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import BaseModal from '../common/BaseModal.vue'
+import AppButton from '../common/AppButton.vue'
 
 const store = useArchiveStore()
 

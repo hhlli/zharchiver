@@ -18,7 +18,7 @@
               <span class="text-sm text-gray-700">{{ tag.name }}</span>
             </div>
             <div class="flex items-center space-x-1">
-              <button @click="startEdit(tag)" class="text-[11px] text-gray-400 hover:text-blue-600 transition px-2 py-1 rounded">
+              <button @click="startEdit(tag)" class="text-[11px] text-gray-400 hover:text-brand transition px-2 py-1 rounded">
                 编辑
               </button>
               <button @click="deleteTag(tag.name)" :disabled="isProcessing" class="text-[11px] text-gray-400 hover:text-red-500 transition px-2 py-1 rounded">
@@ -46,7 +46,7 @@
               <button @click="editingTag = null" class="px-3 py-1 border border-gray-300 text-gray-600 rounded-md text-xs hover:bg-gray-100 transition cursor-pointer">
                 取消
               </button>
-              <button @click="saveTag(tag.name)" :disabled="isProcessing || !editForm.name.trim()" class="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition cursor-pointer disabled:opacity-50">
+              <button @click="saveTag(tag.name)" :disabled="isProcessing || !editForm.name.trim()" class="px-3 py-1 bg-brand text-white rounded-md text-xs font-medium hover:bg-brand-hover transition cursor-pointer disabled:opacity-50">
                 保存
               </button>
             </div>

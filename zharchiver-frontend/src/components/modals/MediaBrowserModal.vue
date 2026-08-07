@@ -65,8 +65,8 @@
 
           <!-- Overlay Info -->
           <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            <div class="text-white/90 text-xs font-medium truncate">归档于 {{ formatDate(item.saved_at) }}</div>
-            <div class="text-white/50 text-[10px] mt-0.5 uppercase">{{ item.type }}</div>
+            <div class="text-white/90 text-sm font-medium truncate">归档于 {{ formatDate(item.saved_at) }}</div>
+            <div class="text-white/50 text-xs mt-0.5 uppercase">{{ item.type }}</div>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@
         <!-- Jump to Article Button -->
         <button 
           @click.stop="jumpToArticle"
-          class="h-12 px-5 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2 font-medium transition-colors shadow-lg"
+          class="h-12 px-5 rounded-full bg-brand hover:bg-brand-hover text-white flex items-center space-x-2 font-medium transition-colors shadow-lg"
           title="跳转至原文"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>

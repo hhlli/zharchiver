@@ -41,7 +41,7 @@
         <div v-if="store.currentView === 'settings'" class="border-t border-gray-100 mt-1 pt-1">
           <button 
             @click="goHome"
-            class="w-full text-left px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition cursor-pointer"
+            class="w-full text-left px-4 py-2 text-sm font-medium text-brand hover:bg-blue-50 transition cursor-pointer"
           >返回主界面</button>
         </div>
       </div>
@@ -50,7 +50,7 @@
     <!-- 悬浮按钮 (FAB) -->
     <button 
       @click="toggleMenu"
-      :class="['w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-300', isOpen ? 'bg-gray-800 rotate-45' : 'bg-blue-600 hover:bg-blue-700']"
+      :class="['w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-transform duration-300', isOpen ? 'bg-gray-800 rotate-45' : 'bg-brand hover:bg-brand-hover']"
     >
       <svg v-if="!isOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
       <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>

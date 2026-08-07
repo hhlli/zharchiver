@@ -126,19 +126,24 @@ func parseInitialJSON(jsonData string, target *ZhihuTarget) (*models.AnswerData,
 	questionNode := gjson.Get(jsonData, questionPath)
 	contentHTML := answerNode.Get("content").String()
 
-	imgRegex := regexp.MustCompile(`(?:data-actualsrc|data-original)="([^"]+)"`)
-	imgMatches := imgRegex.FindAllStringSubmatch(contentHTML, -1)
+	imgTagRegex := regexp.MustCompile(`<img[^>]+>`)
+	originalRegex := regexp.MustCompile(`data-original="([^"]+)"`)
+	actualRegex := regexp.MustCompile(`data-actualsrc="([^"]+)"`)
 
 	var imageURLs []string
 	seen := make(map[string]bool)
 
-	for _, m := range imgMatches {
-		if len(m) > 1 {
-			rawURL := m[1]
-			if !seen[rawURL] {
-				seen[rawURL] = true
-				imageURLs = append(imageURLs, rawURL)
-			}
+	for _, imgTag := range imgTagRegex.FindAllString(contentHTML, -1) {
+		var rawURL string
+		if m := originalRegex.FindStringSubmatch(imgTag); len(m) > 1 {
+			rawURL = m[1]
+		} else if m := actualRegex.FindStringSubmatch(imgTag); len(m) > 1 {
+			rawURL = m[1]
+		}
+		
+		if rawURL != "" && !seen[rawURL] {
+			seen[rawURL] = true
+			imageURLs = append(imageURLs, rawURL)
 		}
 	}
 

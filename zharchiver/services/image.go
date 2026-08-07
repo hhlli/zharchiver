@@ -119,6 +119,8 @@ func ProcessImages(data *models.AnswerData) error {
 
 		data.ContentHTML = strings.ReplaceAll(data.ContentHTML, target1, replaceStr)
 		data.ContentHTML = strings.ReplaceAll(data.ContentHTML, target2, replaceStr)
+		
+		data.ImageURLs[i] = localRelPath
 	}
 	return nil
 }

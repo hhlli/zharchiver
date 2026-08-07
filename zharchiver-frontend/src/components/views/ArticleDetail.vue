@@ -2,7 +2,7 @@
   <div class="max-w-6xl mx-auto space-y-6 md:h-full pb-8">
     <button 
       @click="store.currentAnswer = null" 
-      class="inline-flex items-center space-x-1 text-sm md:text-xs font-medium text-gray-500 hover:text-blue-600 mb-2 md:mb-2 cursor-pointer transition select-none py-2 px-1 -ml-1 md:py-0 md:px-0 md:ml-0"
+      class="inline-flex items-center space-x-1 text-sm md:text-xs font-medium text-gray-500 hover:text-brand mb-2 md:mb-2 cursor-pointer transition select-none py-2 px-1 -ml-1 md:py-0 md:px-0 md:ml-0"
     >
       <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       <span>返回列表</span>
@@ -37,7 +37,7 @@
           </div>
           <div v-if="isEditing" class="flex items-center space-x-2 ml-4 border-l pl-4 border-gray-200">
             <button @click="cancelEdit" class="text-xs text-gray-500 hover:text-gray-700 transition px-2 py-1 cursor-pointer">取消</button>
-            <button @click="saveEdit" class="text-xs bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition flex items-center space-x-1 shadow-sm cursor-pointer" :disabled="saving">
+            <button @click="saveEdit" class="text-xs bg-brand text-white px-3 py-1 rounded-md hover:bg-brand-hover transition flex items-center space-x-1 shadow-sm cursor-pointer" :disabled="saving">
               <span v-if="saving">保存中...</span>
               <span v-else>保存</span>
             </button>
@@ -56,9 +56,15 @@
       <RichEditor v-model="editContent" />
     </div>
 
-    <div class="mt-8 flex flex-row items-center justify-between text-sm text-gray-500 mb-2">
-      <span class="font-medium text-gray-700">作者：{{ store.currentAnswer?.author_name }}</span>
-      <span class="text-xs">原文发布：{{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
+    <div class="mt-8 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-500 mb-6 gap-3">
+      <div class="flex items-center space-x-4">
+        <span class="font-medium text-gray-700">作者：{{ store.currentAnswer?.author_name }}</span>
+        <span class="text-xs">发布于 {{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
+      </div>
+      <a :href="getOriginalUrl(store.currentAnswer)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 text-brand hover:text-brand-hover transition-colors font-medium">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        <span>查看原出处</span>
+      </a>
     </div>
 
     <AnswerComments :answerId="store.currentAnswer?.answer_id" :refreshKey="commentRefreshKey" />
@@ -120,7 +126,7 @@
         >取消</button>
         <button 
           @click="saveTag"
-          class="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition cursor-pointer"
+          class="px-4 py-1.5 bg-brand text-white rounded-lg text-xs font-medium hover:bg-brand-hover transition cursor-pointer"
         >保存</button>
       </div>
     </BaseModal>
@@ -286,6 +292,15 @@ const processHtmlContent = (html) => {
 const formatTimestamp = (ts) => {
   if (!ts) return ''
   return new Date(ts * 1000).toLocaleString()
+}
+
+const getOriginalUrl = (answer) => {
+  if (!answer) return '#'
+  if (answer.question_id === 'twitter') {
+    return `https://x.com/i/status/${answer.answer_id}`
+  } else {
+    return `https://www.zhihu.com/question/${answer.question_id}/answer/${answer.answer_id}`
+  }
 }
 
 const formatDate = (dateStr) => {

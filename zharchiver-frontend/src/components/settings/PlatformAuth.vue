@@ -25,7 +25,7 @@
     >
       <div class="p-6 flex flex-col items-center justify-center min-h-[250px]">
         <div v-if="wsStatus === 'loading' || wsStatus === 'connecting'" class="flex flex-col items-center">
-          <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
+          <div class="w-8 h-8 border-4 border-blue-200 border-t-brand rounded-full animate-spin mb-4"></div>
           <p class="text-sm text-gray-600">{{ wsMessage || '正在连接安全环境...' }}</p>
         </div>
         

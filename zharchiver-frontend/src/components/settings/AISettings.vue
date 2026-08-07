@@ -23,7 +23,7 @@
             </select>
           </div>
           <div class="flex items-center space-x-2">
-            <button @click="addNewProfile" class="text-blue-600 hover:text-blue-700 text-sm font-medium px-2 py-1 transition cursor-pointer">
+            <button @click="addNewProfile" class="text-brand hover:text-brand-hover text-sm font-medium px-2 py-1 transition cursor-pointer">
               + 新建配置
             </button>
             <button @click="deleteActiveProfile" :disabled="config.ai_profiles.length <= 1" :class="['text-sm font-medium px-2 py-1 transition', config.ai_profiles.length <= 1 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 hover:text-red-600 cursor-pointer']" title="删除当前配置">

@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand: var(--color-blue-600);
+  --color-brand-hover: var(--color-blue-700);
+  --color-brand-light: var(--color-blue-50);
+  --text-mini: 10px;
+  --text-tweet: 15px;
+}
+
 /* 强制统一文章内容的行距与段落间距，覆盖原有内联样式 */
 .prose p {
   margin-top: 0.8em !important;

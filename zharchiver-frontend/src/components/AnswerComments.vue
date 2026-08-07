@@ -39,7 +39,7 @@
           ></textarea>
           <div class="flex justify-end space-x-2">
             <button @click="editingCommentId = null" class="px-3 py-1 text-xs text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-md transition cursor-pointer">取消</button>
-            <button @click="saveEdit(comment)" class="px-3 py-1 text-xs text-white bg-blue-600 hover:bg-blue-700 rounded-md transition cursor-pointer" :disabled="savingEdit">保存</button>
+            <button @click="saveEdit(comment)" class="px-3 py-1 text-xs text-white bg-brand hover:bg-brand-hover rounded-md transition cursor-pointer" :disabled="savingEdit">保存</button>
           </div>
         </div>
         <div v-else class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -49,7 +50,23 @@ func sendMessageToTelegramWithMarkup(db *sql.DB, token, chatID, text string, mar
 	
 	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	client := &http.Client{Timeout: 10 * time.Second, Transport: tr}
-	client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("TG消息发送失败: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode >= 400 {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("TG消息发送失败, 状态码: %d, 响应: %s, payload: %s", resp.StatusCode, string(bodyBytes), string(body))
+		
+		// Fallback: 如果带有 markup 发送失败（可能是 callback_data 过长或按钮过多），尝试不带 markup 发送
+		if markup != nil {
+			log.Printf("尝试不带 markup 再次发送...")
+			sendMessageToTelegramWithMarkup(db, token, chatID, text + "\n(原提示包含过多或过长的标签，键盘渲染失败)", nil)
+		}
+	}
 }
 
 func editMessageText(db *sql.DB, token string, chatID int64, messageID int, text string) {

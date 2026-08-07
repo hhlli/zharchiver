@@ -63,7 +63,7 @@
         </button>
         <button 
           @click="submitArchive"
-          class="px-4 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition disabled:bg-gray-400 cursor-pointer"
+          class="px-4 py-1.5 bg-brand text-white rounded-lg text-xs font-medium hover:bg-brand-hover transition disabled:bg-gray-400 cursor-pointer"
           :disabled="loading"
         >
           {{ loading ? '抓取归档中...' : '开始归档' }}

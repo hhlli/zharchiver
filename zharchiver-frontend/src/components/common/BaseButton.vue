@@ -53,11 +53,11 @@ const props = defineProps({
 defineEmits(['click'])
 
 const variantClasses = {
-  'primary': 'bg-blue-600 hover:bg-blue-700 text-white',
+  'primary': 'bg-brand hover:bg-brand-hover text-white',
   'secondary': 'bg-gray-800 hover:bg-gray-900 text-white',
   'danger': 'bg-red-600 hover:bg-red-700 text-white',
   'outline': 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
-  'soft': 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-transparent',
+  'soft': 'bg-blue-50 hover:bg-blue-100 text-brand-hover border-transparent',
   'danger-soft': 'bg-red-50 hover:bg-red-100 text-red-700 border-transparent'
 }
 </script>

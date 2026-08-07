@@ -5,12 +5,12 @@
       <div class="flex items-center space-x-3 md:space-x-6">
       <div class="flex items-center space-x-2">
         <!-- Logo: 使用一个更精致的SVG图标代表归档/箱子 -->
-        <div class="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+        <div class="w-7 h-7 bg-brand rounded-lg flex items-center justify-center shadow-sm">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
           </svg>
         </div>
-        <span class="text-[15px] font-bold text-gray-800 tracking-tight">ZHArchiver</span>
+        <span class="text-tweet font-bold text-gray-800 tracking-tight">ZHArchiver</span>
       </div>
     </div>
 
@@ -38,7 +38,7 @@
       <!-- 新增归档按钮 -->
       <button 
         @click="store.showAddModal = true"
-        class="w-8 h-8 md:w-auto md:px-3 bg-blue-600 text-white rounded-[10px] text-xs font-medium hover:bg-blue-700 transition flex items-center justify-center md:space-x-1 cursor-pointer shadow-sm flex-shrink-0"
+        class="w-8 h-8 md:w-auto md:px-3 bg-brand text-white rounded-[10px] text-xs font-medium hover:bg-brand-hover transition flex items-center justify-center md:space-x-1 cursor-pointer shadow-sm flex-shrink-0"
       >
         <svg class="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         <span class="hidden md:inline">新建归档</span>

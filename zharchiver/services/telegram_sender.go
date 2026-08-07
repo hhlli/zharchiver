@@ -81,7 +81,7 @@ func sendMediaGroup(apiEndpoint, token, chatID string, mediaPaths []string, capt
 			mediaType = "video"
 		}
 
-		attachKey := fmt.Sprintf("file%d", i)
+		attachKey := fmt.Sprintf("media%d", i)
 		
 		item := MediaItem{
 			Type:  mediaType,
@@ -91,10 +91,7 @@ func sendMediaGroup(apiEndpoint, token, chatID string, mediaPaths []string, capt
 		if mediaType == "video" {
 			item.SupportsStreaming = true
 			
-			localPath := filepath.Join("storage", path)
-			if strings.HasPrefix(path, "/") {
-				localPath = filepath.Join("storage", path[1:])
-			}
+		localPath := filepath.Join("storage", path)
 			w, h, err := utils.GetVideoDimensions(localPath)
 			if err == nil && w > 0 && h > 0 {
 				item.Width = w
@@ -108,13 +105,8 @@ func sendMediaGroup(apiEndpoint, token, chatID string, mediaPaths []string, capt
 		}
 		mediaArr = append(mediaArr, item)
 
-		// 写入文件
-		// 注意: 本地的图片路径是相对路径，例如 /images/xxx，我们需要找到绝对或相对运行目录的路径
-		localPath := filepath.Join("storage", path) 
-		// 如果 path 以 / 开头，去除 /
-		if strings.HasPrefix(path, "/") {
-			localPath = filepath.Join("storage", path[1:])
-		}
+		// 注意: 本地路径是相对 storage 的
+		localPath := filepath.Join("storage", path)
 
 		file, err := os.Open(localPath)
 		if err != nil {
@@ -346,9 +338,6 @@ func sendSingleMedia(apiEndpoint, token, chatID string, mediaPath string, captio
 	writer.WriteField("chat_id", chatID)
 	
 	localPath := filepath.Join("storage", mediaPath)
-	if strings.HasPrefix(mediaPath, "/") {
-		localPath = filepath.Join("storage", mediaPath[1:])
-	}
 	
 	if method == "sendVideo" {
 		writer.WriteField("supports_streaming", "true")
