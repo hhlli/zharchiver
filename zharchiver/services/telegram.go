@@ -161,7 +161,22 @@ func downloadTelegramFile(db *sql.DB, token, fileID string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	
+	// 如果自定义端点下载失败（常见的反代不代理 /file 路径的情况），则降级使用官方 API 尝试下载
+	if dlResp.StatusCode != http.StatusOK {
+		dlResp.Body.Close()
+		dlUrl = fmt.Sprintf("https://api.telegram.org/file/bot%s/%s", token, fileResp.Result.FilePath)
+		dlResp, err = client.Get(dlUrl)
+		if err != nil {
+			return nil, err
+		}
+	}
+	
 	defer dlResp.Body.Close()
+
+	if dlResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("下载文件失败，Telegram 返回状态码: %d", dlResp.StatusCode)
+	}
 	
 	return io.ReadAll(dlResp.Body)
 }
