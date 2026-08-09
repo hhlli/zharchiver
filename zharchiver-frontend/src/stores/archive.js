@@ -19,9 +19,13 @@ export const useArchiveStore = defineStore('archive', () => {
 
   const answers = ref([])
   const currentAnswer = ref(null)
+  const currentGroup = ref(null)
   const itemToDelete = ref(null)
   const itemToDeleteType = ref('answer')
   const itemToDeleteCallback = ref(null)
+
+  // 记录展开状态的组 key 集合
+  const expandedGroups = ref(new Set())
 
   watch(itemToDelete, (newVal) => {
     if (!newVal) {
@@ -95,10 +99,16 @@ export const useArchiveStore = defineStore('archive', () => {
       const res = await apiFetch(`${API_BASE}/api/answers/${id}`)
       if (res.ok) {
         currentAnswer.value = await res.json()
+        currentGroup.value = null // 进入详情时清除组
       }
     } catch (err) {
       console.error('获取详情失败:', err)
     }
+  }
+
+  const selectGroup = (group) => {
+    currentGroup.value = group
+    currentAnswer.value = null
   }
 
   const onArchiveSuccess = async (id) => {
@@ -128,6 +138,15 @@ export const useArchiveStore = defineStore('archive', () => {
         if (currentAnswer.value && currentAnswer.value.answer_id === id) {
           currentAnswer.value = null
         }
+        // 如果正展示该组详情，删除后刻刷新组内容
+        if (currentGroup.value) {
+          const updatedAnswers = currentGroup.value.answers.filter(a => a.answer_id !== id)
+          if (updatedAnswers.length === 0) {
+            currentGroup.value = null
+          } else {
+            currentGroup.value = { ...currentGroup.value, answers: updatedAnswers, count: updatedAnswers.length }
+          }
+        }
         await fetchAnswersList()
       } else {
         const errData = await res.json()
@@ -137,6 +156,16 @@ export const useArchiveStore = defineStore('archive', () => {
       console.error(e)
       showAlert('错误', '网络请求失败')
     }
+  }
+
+  const toggleGroup = (groupKey) => {
+    const s = new Set(expandedGroups.value)
+    if (s.has(groupKey)) {
+      s.delete(groupKey)
+    } else {
+      s.add(groupKey)
+    }
+    expandedGroups.value = s
   }
 
   // === Getters ===
@@ -170,6 +199,70 @@ export const useArchiveStore = defineStore('archive', () => {
     return list
   })
 
+  // 分组后的列表：相同 title（非空）归并，空 title 独立展示
+  const groupedAnswers = computed(() => {
+    const list = filteredAnswers.value
+    const groups = []
+    const questionIdMap = new Map() // question_id -> group index
+    const titleMap = new Map()      // title -> group index
+
+    for (const item of list) {
+      const hasTitle = item.title && item.title.trim() !== ''
+      const hasQid = item.question_id && item.question_id !== '0' && item.question_id !== 0
+
+      // 无标题：独立展示，不参与任何组
+      if (!hasTitle) {
+        groups.push({
+          groupKey: `solo_${item.answer_id}`,
+          title: item.title,
+          questionId: item.question_id,
+          tag: item.tag,
+          tagColor: item.tag_color,
+          answers: [item],
+          isSolo: true
+        })
+        continue
+      }
+
+      // 尝试用 question_id 找已有组
+      let idx = hasQid ? questionIdMap.get(item.question_id) : undefined
+
+      // 再尝试用 title 找已有组
+      if (idx === undefined) {
+        idx = titleMap.get(item.title)
+      }
+
+      if (idx !== undefined) {
+        groups[idx].answers.push(item)
+        if (hasQid && !questionIdMap.has(item.question_id)) {
+          questionIdMap.set(item.question_id, idx)
+        }
+      } else {
+        const newIdx = groups.length
+        const groupKey = hasQid ? `qid_${item.question_id}` : `title_${item.title}`
+        groups.push({
+          groupKey,
+          title: item.title,
+          questionId: item.question_id,
+          tag: item.tag,
+          tagColor: item.tag_color,
+          answers: [item],
+          isSolo: false
+        })
+        titleMap.set(item.title, newIdx)
+        if (hasQid) {
+          questionIdMap.set(item.question_id, newIdx)
+        }
+      }
+    }
+
+    return groups.map(g => ({
+      ...g,
+      count: g.answers.length,
+      isExpanded: expandedGroups.value.has(g.groupKey)
+    }))
+  })
+
   return {
     API_BASE,
     isDesktopSidebarOpen,
@@ -183,9 +276,11 @@ export const useArchiveStore = defineStore('archive', () => {
     activeCategory,
     answers,
     currentAnswer,
+    currentGroup,
     itemToDelete,
     itemToDeleteType,
     itemToDeleteCallback,
+    expandedGroups,
     showGlobalAlert,
     globalAlertTitle,
     globalAlertMessage,
@@ -199,10 +294,13 @@ export const useArchiveStore = defineStore('archive', () => {
     apiFetch,
     fetchAnswersList,
     selectAnswer,
+    selectGroup,
     onArchiveSuccess,
     confirmDelete,
+    toggleGroup,
 
     tags,
-    filteredAnswers
+    filteredAnswers,
+    groupedAnswers
   }
 })

@@ -33,6 +33,7 @@
         <!-- 主页视图 -->
         <div v-if="store.currentView === 'home'" class="md:h-full">
           <ArticleDetail v-if="store.currentAnswer" />
+          <GroupDetail v-else-if="store.currentGroup" />
           <HomeView v-else />
         </div>
 
@@ -97,6 +98,7 @@ import { useArchiveStore } from './stores/archive'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppSidebar from './components/layout/AppSidebar.vue'
 import HomeView from './components/views/HomeView.vue'
+import GroupDetail from './components/views/GroupDetail.vue'
 import ArticleDetail from './components/views/ArticleDetail.vue'
 import AddArchiveModal from './components/modals/AddArchiveModal.vue'
 import LoginModal from './components/modals/LoginModal.vue'

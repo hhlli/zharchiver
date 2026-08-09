@@ -292,7 +292,13 @@ func AutoPushToTelegram(db *sql.DB, answerID string) {
 	token := models.GetSetting(db, "telegram_push_bot_token")
 	chatID := models.GetSetting(db, "telegram_push_chat_id")
 	if token == "" || chatID == "" {
-		utils.BroadcastLog("INFO", "自动推送未配置完整的 Push Token 或 Chat ID，已跳过")
+		// 如果推送机器人未单独配置，退化使用默认归档机器人
+		token = models.GetSetting(db, "telegram_bot_token")
+		chatID = models.GetSetting(db, "telegram_chat_id")
+	}
+
+	if token == "" || chatID == "" {
+		utils.BroadcastLog("INFO", "自动推送未配置完整的 Push Token 或 Chat ID，且无默认机器人配置，已跳过")
 		return
 	}
 
