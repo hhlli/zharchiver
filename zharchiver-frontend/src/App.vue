@@ -26,7 +26,7 @@
       <!-- 右侧主内容展示区 -->
       <main class="md:flex-1 bg-gray-50/30 md:bg-white relative md:flex md:flex-col min-w-0 md:h-full">
         
-        <div class="md:flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text md:overflow-y-auto">
+        <div id="main-scroll-container" class="md:flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text md:overflow-y-auto">
         <!-- 删除确认弹窗 -->
         <DeleteConfirmModal />
 
@@ -55,7 +55,7 @@
     <!-- 底部状态栏 (PC) -->
     <footer class="hidden md:flex h-8 bg-[#f5f5f7] border-t border-gray-200 items-center justify-between px-6 flex-shrink-0 text-[11px] text-gray-500">
       <span>知乎内容本地归档库</span>
-      <span>已加载 {{ store.answers.length }} 个项目</span>
+      <span>已归档 {{ store.totalCount }} 个项目</span>
     </footer>
 
     <!-- 移动端悬浮菜单 (FAB) -->

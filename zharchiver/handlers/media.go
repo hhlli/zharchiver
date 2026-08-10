@@ -18,11 +18,12 @@ type MediaItem struct {
 }
 
 func (env *HandlerEnv) handleGetMedia(w http.ResponseWriter, r *http.Request) {
-	answers, err := models.GetAnswers(env.db)
+	result, err := models.GetAnswersPaginated(env.db, 1, 200, "", "")
 	if err != nil {
 		http.Error(w, "获取归档记录失败", http.StatusInternalServerError)
 		return
 	}
+	answers := result.Items
 
 	var mediaList []MediaItem
 	

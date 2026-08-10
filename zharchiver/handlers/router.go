@@ -114,10 +114,12 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) http.Handler {
 	mux.Handle("/storage/", http.StripPrefix("/storage/", http.FileServer(http.Dir("storage"))))
 
 	mux.HandleFunc("GET /api/answers", env.handleGetAnswers)
+	mux.HandleFunc("GET /api/group/answers", env.handleGetGroupAnswers)
 	mux.HandleFunc("GET /api/answers/{id}", env.handleGetAnswerByID)
 	mux.HandleFunc("DELETE /api/answers/{id}", env.handleDeleteAnswer)
 	mux.HandleFunc("PATCH /api/answers/{id}/tag", env.handleUpdateTag)
 	mux.HandleFunc("PATCH /api/answers/{id}/content", env.handleUpdateAnswer)
+	mux.HandleFunc("GET /api/tags", env.handleGetAllTags)
 	mux.HandleFunc("PUT /api/tags", env.handleRenameGlobalTag)
 	mux.HandleFunc("DELETE /api/tags", env.handleDeleteGlobalTag)
 	mux.HandleFunc("GET /api/answers/{id}/comments", env.handleGetComments)

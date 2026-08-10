@@ -9,8 +9,8 @@
       <button @click="closeModal" class="text-gray-400 hover:text-gray-600 text-lg cursor-pointer">&times;</button>
     </div>
     <div class="p-0 max-h-[70vh] overflow-y-auto">
-      <div v-if="store.tags && store.tags.length > 0" class="divide-y divide-gray-100">
-        <div v-for="tag in store.tags" :key="tag.name" class="px-5 py-3 hover:bg-gray-50 transition-colors group">
+      <div v-if="store.allTags && store.allTags.length > 0" class="divide-y divide-gray-100">
+        <div v-for="tag in store.allTags" :key="tag.name" class="px-5 py-3 hover:bg-gray-50 transition-colors group">
           
           <div v-if="editingTag !== tag.name" class="flex items-center justify-between">
             <div class="flex items-center space-x-3">

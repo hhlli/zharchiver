@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"zharchiver/models"
@@ -19,14 +20,49 @@ type ArchiveRequest struct {
 }
 
 func (env *HandlerEnv) handleGetAnswers(w http.ResponseWriter, r *http.Request) {
-	list, err := models.GetAnswers(env.db)
+	page := 1
+	limit := 50
+	tag := r.URL.Query().Get("tag")
+	search := r.URL.Query().Get("search")
+
+	if p := r.URL.Query().Get("page"); p != "" {
+		if v, err := strconv.Atoi(p); err == nil {
+			page = v
+		}
+	}
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if v, err := strconv.Atoi(l); err == nil {
+			limit = v
+		}
+	}
+
+	result, err := models.GetAnswersPaginated(env.db, page, limit, tag, search)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(list)
+	json.NewEncoder(w).Encode(result)
+}
+
+func (env *HandlerEnv) handleGetGroupAnswers(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Query().Get("title")
+	questionID := r.URL.Query().Get("question_id")
+
+	if title == "" && questionID == "" {
+		http.Error(w, "必须提供 title 或 question_id", http.StatusBadRequest)
+		return
+	}
+
+	answers, err := models.GetGroupAnswers(env.db, title, questionID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(answers)
 }
 
 func (env *HandlerEnv) handleGetAnswerByID(w http.ResponseWriter, r *http.Request) {
@@ -128,6 +164,30 @@ func (env *HandlerEnv) handleDeleteGlobalTag(w http.ResponseWriter, r *http.Requ
 
 	utils.BroadcastLog("INFO", fmt.Sprintf("成功删除了标签 '%s'", req.Tag))
 	w.WriteHeader(http.StatusOK)
+}
+
+func (env *HandlerEnv) handleGetAllTags(w http.ResponseWriter, r *http.Request) {
+	type TagItem struct {
+		Name  string `json:"name"`
+		Color string `json:"color"`
+	}
+	rows, err := env.db.Query("SELECT DISTINCT tag, tag_color FROM answers WHERE tag != '' ORDER BY tag")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	var tags []TagItem
+	for rows.Next() {
+		var t TagItem
+		rows.Scan(&t.Name, &t.Color)
+		tags = append(tags, t)
+	}
+	if tags == nil {
+		tags = []TagItem{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tags)
 }
 
 func (env *HandlerEnv) handleUpdateAnswer(w http.ResponseWriter, r *http.Request) {

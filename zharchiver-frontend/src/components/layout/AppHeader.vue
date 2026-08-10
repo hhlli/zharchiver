@@ -3,8 +3,8 @@
     <div class="h-14 flex items-center justify-between px-3">
       <!-- 左侧：Logo 与 基础控制 -->
       <div class="flex items-center space-x-3 md:space-x-6">
+      <!-- Logo + 品牌名 -->
       <div class="flex items-center space-x-2">
-        <!-- Logo: 使用一个更精致的SVG图标代表归档/箱子 -->
         <div class="w-7 h-7 bg-brand rounded-lg flex items-center justify-center shadow-sm">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>

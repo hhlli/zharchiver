@@ -35,9 +35,9 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
             
-            <div v-if="showTagDropdown && store.tags.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            <div v-if="showTagDropdown && store.allTags.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
               <div 
-                v-for="t in store.tags" 
+                v-for="t in store.allTags" 
                 :key="t.name" 
                 @mousedown.prevent="selectExistingTag(t)"
                 class="px-3 py-2 text-xs text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center space-x-2"
@@ -97,7 +97,7 @@ const selectExistingTag = (t) => {
 }
 
 watch(inputTag, (newVal) => {
-  const existing = store.tags.find(t => t.name === newVal)
+  const existing = store.allTags.find(t => t.name === newVal)
   if (existing) {
     inputTagColor.value = existing.color
   }

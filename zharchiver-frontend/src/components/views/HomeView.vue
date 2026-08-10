@@ -76,15 +76,45 @@
         </div>
       </div>
     </div>
+
+    <!-- 无限滚动触发哨兵 -->
+    <div ref="sentinel" class="h-8 flex items-center justify-center mt-2">
+      <span v-if="store.isLoadingMore" class="text-xs text-gray-400 flex items-center space-x-1.5">
+        <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+        </svg>
+        <span>加载中...</span>
+      </span>
+      <span v-else-if="!store.hasMore && store.totalCount > 0" class="text-xs text-gray-300">
+        已加载全部 {{ store.totalCount }} 条
+      </span>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import PlatformIcon from '../common/PlatformIcon.vue'
 import AppBadge from '../common/AppBadge.vue'
 
 const store = useArchiveStore()
+const sentinel = ref(null)
+let observer = null
+
+onMounted(() => {
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && store.hasMore && !store.isLoadingMore) {
+      store.loadMoreAnswers()
+    }
+  }, { threshold: 0.1 })
+  if (sentinel.value) observer.observe(sentinel.value)
+})
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
+})
 
 const isTwitter = (group) => group.answers[0]?.question_id === 'twitter'
 

@@ -28,6 +28,7 @@ type AnswerSummary struct {
 	SavedAt     string `json:"saved_at"`
 	Tag         string `json:"tag"`
 	TagColor    string `json:"tag_color"`
+	GroupCount  int    `json:"group_count"`
 }
 
 func SaveAnswer(db *sql.DB, data *AnswerData) error {
@@ -62,12 +63,51 @@ func SaveAnswer(db *sql.DB, data *AnswerData) error {
 	return err
 }
 
-func GetAnswers(db *sql.DB) ([]AnswerSummary, error) {
+type AnswerListResult struct {
+	Items []AnswerSummary `json:"items"`
+	Total int            `json:"total"`
+	Page  int            `json:"page"`
+	Limit int            `json:"limit"`
+}
+
+func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string) (*AnswerListResult, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 200 {
+		limit = 50
+	}
+	offset := (page - 1) * limit
+
+	// 构建 WHERE 条件
+	where := "WHERE 1=1"
+	args := []interface{}{}
+	if tag != "" {
+		where += " AND tag = ?"
+		args = append(args, tag)
+	}
+	if search != "" {
+		where += " AND (title LIKE ? OR author_name LIKE ?)"
+		args = append(args, "%"+search+"%", "%"+search+"%")
+	}
+
+	// 查总数
+	var total int
+	countArgs := make([]interface{}, len(args))
+	copy(countArgs, args)
+	db.QueryRow("SELECT COUNT(*) FROM answers "+where, countArgs...).Scan(&total)
+
+	// 分页查询
+	paginateArgs := append(args, limit, offset)
 	rows, err := db.Query(`
-		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color
-		FROM answers
+		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color,
+			(SELECT COUNT(*) FROM answers sub 
+			 WHERE (sub.title = answers.title AND answers.title != '') 
+			    OR (sub.question_id = answers.question_id AND answers.question_id != '0' AND answers.title == '')) as group_count
+		FROM answers `+where+`
 		ORDER BY saved_at DESC
-	`)
+		LIMIT ? OFFSET ?
+	`, paginateArgs...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,16 +116,15 @@ func GetAnswers(db *sql.DB) ([]AnswerSummary, error) {
 	var list []AnswerSummary
 	for rows.Next() {
 		var item AnswerSummary
-		if err := rows.Scan(&item.AnswerID, &item.QuestionID, &item.Title, &item.AuthorName, &item.CreatedTime, &item.UpdatedTime, &item.SavedAt, &item.Tag, &item.TagColor); err != nil {
+		if err := rows.Scan(&item.AnswerID, &item.QuestionID, &item.Title, &item.AuthorName, &item.CreatedTime, &item.UpdatedTime, &item.SavedAt, &item.Tag, &item.TagColor, &item.GroupCount); err != nil {
 			return nil, err
 		}
 		list = append(list, item)
 	}
-
 	if list == nil {
 		list = []AnswerSummary{}
 	}
-	return list, nil
+	return &AnswerListResult{Items: list, Total: total, Page: page, Limit: limit}, nil
 }
 
 func GetAnswerByID(db *sql.DB, id string) (*AnswerData, error) {
@@ -100,6 +139,55 @@ func GetAnswerByID(db *sql.DB, id string) (*AnswerData, error) {
 		return nil, err
 	}
 	return &data, nil
+}
+
+// GetGroupAnswers 获取同一问题下的所有回答（用于渲染详情页的作者标签），按保存时间倒序
+func GetGroupAnswers(db *sql.DB, title, questionID string) ([]AnswerSummary, error) {
+	query := `
+		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color
+		FROM answers
+		WHERE 1=1
+	`
+	var args []interface{}
+	var condition string
+
+	// 与前端分组逻辑保持一致：有非空 title 按 title，否则按 question_id
+	if title != "" {
+		condition = " AND title = ?"
+		args = append(args, title)
+		// 如果此时还有有效的 question_id 作为补充条件
+		if questionID != "" && questionID != "0" {
+			condition = " AND (title = ? OR question_id = ?)"
+			args = []interface{}{title, questionID}
+		}
+	} else if questionID != "" && questionID != "0" {
+		condition = " AND question_id = ?"
+		args = append(args, questionID)
+	} else {
+		// 都为空，无法成组，返回空
+		return []AnswerSummary{}, nil
+	}
+
+	query += condition + ` ORDER BY saved_at DESC`
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []AnswerSummary
+	for rows.Next() {
+		var s AnswerSummary
+		if err := rows.Scan(
+			&s.AnswerID, &s.QuestionID, &s.Title, &s.AuthorName,
+			&s.CreatedTime, &s.UpdatedTime, &s.SavedAt,
+			&s.Tag, &s.TagColor,
+		); err != nil {
+			return nil, err
+		}
+		results = append(results, s)
+	}
+	return results, nil
 }
 
 func UpdateTag(db *sql.DB, id string, tag string, color string) error {

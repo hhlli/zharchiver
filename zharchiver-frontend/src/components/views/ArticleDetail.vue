@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto space-y-6 md:h-full pb-8">
     <button 
-      @click="store.currentAnswer = null" 
+      @click="store.goBackToList()" 
       class="inline-flex items-center space-x-1 text-sm md:text-xs font-medium text-gray-500 hover:text-brand mb-2 md:mb-2 cursor-pointer transition select-none py-2 px-1 -ml-1 md:py-0 md:px-0 md:ml-0"
     >
       <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -48,6 +48,18 @@
       </div>
     </header>
 
+    <!-- 同问题多回答的作者切换标签 -->
+    <div v-if="store.currentGroup && store.currentGroup.count > 1" class="flex flex-wrap gap-2 my-2">
+      <button
+        v-for="ans in store.currentGroup.answers"
+        :key="ans.answer_id"
+        @click="store.selectAnswer(ans.answer_id, true)"
+        :class="['px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer border', store.currentAnswer?.answer_id === ans.answer_id ? 'bg-blue-50 border-blue-200 text-blue-600 shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100']"
+      >
+        {{ ans.author_name || '匿名用户' }}
+      </button>
+    </div>
+
     <article v-if="!isEditing"
       class="prose prose-sm md:prose-base prose-slate max-w-none text-gray-800 leading-relaxed prose-img:max-w-full prose-img:rounded-lg prose-img:shadow-sm"
       v-html="processHtmlContent(store.currentAnswer?.content_html)"
@@ -56,15 +68,26 @@
       <RichEditor v-model="editContent" />
     </div>
 
-    <div class="mt-8 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-500 mb-6 gap-3">
+    <div class="mt-8 pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-gray-500 mb-3 gap-3">
       <div class="flex items-center space-x-4">
         <span class="font-medium text-gray-700">作者：{{ store.currentAnswer?.author_name }}</span>
-        <span class="text-xs">发布于 {{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
+        <span>发布于 {{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
       </div>
-      <a :href="getOriginalUrl(store.currentAnswer)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 text-brand hover:text-brand-hover transition-colors font-medium">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-        <span>查看原出处</span>
-      </a>
+      <div class="flex items-center space-x-3">
+        <a :href="getOriginalUrl(store.currentAnswer)" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 text-brand hover:text-brand-hover transition-colors font-medium">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+          <span></span>
+        </a>
+        <div class="w-px h-3 bg-gray-300"></div>
+        <button 
+          @click="store.itemToDelete = store.currentAnswer; store.itemToDeleteType = 'answer'" 
+          class="inline-flex items-center space-x-1 text-gray-400 hover:text-red-500 transition-colors font-medium cursor-pointer"
+          title="删除此回答"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          <span></span>
+        </button>
+      </div>
     </div>
 
     <AnswerComments :answerId="store.currentAnswer?.answer_id" :refreshKey="commentRefreshKey" />
@@ -98,9 +121,9 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
             
-            <div v-if="showTagDropdown && store.tags.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            <div v-if="showTagDropdown && store.allTags.length > 0" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
               <div 
-                v-for="t in store.tags" 
+                v-for="t in store.allTags" 
                 :key="t.name" 
                 @mousedown.prevent="selectExistingTag(t)"
                 class="px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center space-x-2"
@@ -221,7 +244,7 @@ const selectExistingTag = (t) => {
 }
 
 watch(editTagValue, (newVal) => {
-  const existing = store.tags.find(t => t.name === newVal)
+  const existing = store.allTags.find(t => t.name === newVal)
   if (existing) {
     editTagColor.value = existing.color
   }
