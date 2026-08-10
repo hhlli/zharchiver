@@ -16,6 +16,7 @@ type AnswerData struct {
 	ImageURLs   []string `json:"image_urls"`
 	Tag         string   `json:"tag"`
 	TagColor    string   `json:"tag_color"`
+	IsFavorite  int      `json:"is_favorite"`
 }
 
 type AnswerSummary struct {
@@ -29,6 +30,7 @@ type AnswerSummary struct {
 	Tag         string `json:"tag"`
 	TagColor    string `json:"tag_color"`
 	GroupCount  int    `json:"group_count"`
+	IsFavorite  int    `json:"is_favorite"`
 }
 
 func SaveAnswer(db *sql.DB, data *AnswerData) error {
@@ -100,7 +102,7 @@ func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string) (*Answ
 	// 分页查询
 	paginateArgs := append(args, limit, offset)
 	rows, err := db.Query(`
-		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color,
+		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color, is_favorite,
 			(SELECT COUNT(*) FROM answers sub 
 			 WHERE (sub.title = answers.title AND answers.title != '') 
 			    OR (sub.question_id = answers.question_id AND answers.question_id != '0' AND answers.title == '')) as group_count
@@ -116,7 +118,7 @@ func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string) (*Answ
 	var list []AnswerSummary
 	for rows.Next() {
 		var item AnswerSummary
-		if err := rows.Scan(&item.AnswerID, &item.QuestionID, &item.Title, &item.AuthorName, &item.CreatedTime, &item.UpdatedTime, &item.SavedAt, &item.Tag, &item.TagColor, &item.GroupCount); err != nil {
+		if err := rows.Scan(&item.AnswerID, &item.QuestionID, &item.Title, &item.AuthorName, &item.CreatedTime, &item.UpdatedTime, &item.SavedAt, &item.Tag, &item.TagColor, &item.IsFavorite, &item.GroupCount); err != nil {
 			return nil, err
 		}
 		list = append(list, item)
@@ -130,10 +132,10 @@ func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string) (*Answ
 func GetAnswerByID(db *sql.DB, id string) (*AnswerData, error) {
 	var data AnswerData
 	err := db.QueryRow(`
-		SELECT answer_id, question_id, title, author_name, content_html, created_time, updated_time, saved_at, tag, tag_color
+		SELECT answer_id, question_id, title, author_name, content_html, created_time, updated_time, saved_at, tag, tag_color, is_favorite
 		FROM answers
 		WHERE answer_id = ?
-	`, id).Scan(&data.AnswerID, &data.QuestionID, &data.Title, &data.AuthorName, &data.ContentHTML, &data.CreatedTime, &data.UpdatedTime, &data.SavedAt, &data.Tag, &data.TagColor)
+	`, id).Scan(&data.AnswerID, &data.QuestionID, &data.Title, &data.AuthorName, &data.ContentHTML, &data.CreatedTime, &data.UpdatedTime, &data.SavedAt, &data.Tag, &data.TagColor, &data.IsFavorite)
 
 	if err != nil {
 		return nil, err
@@ -144,7 +146,7 @@ func GetAnswerByID(db *sql.DB, id string) (*AnswerData, error) {
 // GetGroupAnswers 获取同一问题下的所有回答（用于渲染详情页的作者标签），按保存时间倒序
 func GetGroupAnswers(db *sql.DB, title, questionID string) ([]AnswerSummary, error) {
 	query := `
-		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color
+		SELECT answer_id, question_id, title, author_name, created_time, updated_time, saved_at, tag, tag_color, is_favorite
 		FROM answers
 		WHERE 1=1
 	`
@@ -181,7 +183,7 @@ func GetGroupAnswers(db *sql.DB, title, questionID string) ([]AnswerSummary, err
 		if err := rows.Scan(
 			&s.AnswerID, &s.QuestionID, &s.Title, &s.AuthorName,
 			&s.CreatedTime, &s.UpdatedTime, &s.SavedAt,
-			&s.Tag, &s.TagColor,
+			&s.Tag, &s.TagColor, &s.IsFavorite,
 		); err != nil {
 			return nil, err
 		}
@@ -229,6 +231,95 @@ func DeleteAnswer(db *sql.DB, id string) (int64, error) {
 	}
 
 	return result.RowsAffected()
+}
+
+func DeleteGroup(db *sql.DB, title string, questionID string) (int64, error) {
+	var args []interface{}
+	var condition string
+
+	if title != "" {
+		condition = "title = ?"
+		args = append(args, title)
+		if questionID != "" && questionID != "0" {
+			condition = "(title = ? OR question_id = ?)"
+			args = append(args, questionID)
+		}
+	} else {
+		condition = "question_id = ?"
+		args = append(args, questionID)
+	}
+
+	// First find all answer_ids to delete their comments
+	rows, err := db.Query("SELECT answer_id FROM answers WHERE " + condition, args...)
+	if err == nil {
+		defer rows.Close()
+		var ids []string
+		for rows.Next() {
+			var id string
+			if err := rows.Scan(&id); err == nil {
+				ids = append(ids, id)
+			}
+		}
+		for _, id := range ids {
+			db.Exec("DELETE FROM comments WHERE answer_id = ?", id)
+		}
+	}
+
+	result, err := db.Exec("DELETE FROM answers WHERE " + condition, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected()
+}
+
+func ToggleFavorite(db *sql.DB, id string) (int, error) {
+	var current int
+	err := db.QueryRow("SELECT is_favorite FROM answers WHERE answer_id = ?", id).Scan(&current)
+	if err != nil {
+		return 0, err
+	}
+	
+	newFav := 0
+	if current == 0 {
+		newFav = 1
+	}
+	
+	_, err = db.Exec("UPDATE answers SET is_favorite = ? WHERE answer_id = ?", newFav, id)
+	return newFav, err
+}
+
+func ToggleGroupFavorite(db *sql.DB, title string, questionID string) (int, error) {
+	var args []interface{}
+	var condition string
+
+	if title != "" {
+		condition = "title = ?"
+		args = append(args, title)
+		if questionID != "" && questionID != "0" {
+			condition = "(title = ? OR question_id = ?)"
+			args = append(args, questionID)
+		}
+	} else {
+		condition = "question_id = ?"
+		args = append(args, questionID)
+	}
+
+	// Read current status from the first one
+	var current int
+	err := db.QueryRow("SELECT is_favorite FROM answers WHERE " + condition + " LIMIT 1", args...).Scan(&current)
+	if err != nil {
+		return 0, err
+	}
+
+	newFav := 0
+	if current == 0 {
+		newFav = 1
+	}
+
+	updateArgs := append([]interface{}{newFav}, args...)
+	_, err = db.Exec("UPDATE answers SET is_favorite = ? WHERE " + condition, updateArgs...)
+	return newFav, err
 }
 
 func GetAllTags(db *sql.DB) []string {

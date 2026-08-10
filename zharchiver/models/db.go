@@ -47,6 +47,7 @@ func InitDB(dbPath string) (*sql.DB, error) {
 	_, _ = db.Exec(`ALTER TABLE answers ADD COLUMN tag TEXT DEFAULT ''`)
 	_, _ = db.Exec(`ALTER TABLE answers ADD COLUMN tag_color TEXT DEFAULT 'blue'`)
 	_, _ = db.Exec(`ALTER TABLE answers ADD COLUMN author_avatar TEXT DEFAULT ''`)
+	_, _ = db.Exec(`ALTER TABLE answers ADD COLUMN is_favorite INTEGER DEFAULT 0`)
 
 	_, err = db.Exec(`
         CREATE TABLE IF NOT EXISTS settings (
@@ -57,6 +58,11 @@ func InitDB(dbPath string) (*sql.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("创建 settings 表失败: %v", err)
 	}
+
+	// 为提高性能，创建相关索引（如果不存在）
+	db.Exec(`CREATE INDEX IF NOT EXISTS idx_answers_title_qid ON answers (title, question_id);`)
+	db.Exec(`CREATE INDEX IF NOT EXISTS idx_answers_saved_at ON answers (saved_at);`)
+	db.Exec(`CREATE INDEX IF NOT EXISTS idx_answers_tag ON answers (tag);`)
 
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS comments (

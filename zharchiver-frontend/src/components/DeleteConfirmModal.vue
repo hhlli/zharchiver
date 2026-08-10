@@ -13,7 +13,11 @@
     
     <!-- Body -->
     <div class="px-6 py-5 text-sm text-gray-600 leading-relaxed">
-      <template v-if="store.itemToDeleteType === 'answer'">
+      <template v-if="store.itemToDeleteType === 'group'">
+        您确定要永久删除该问题下的 <span class="font-bold text-gray-800">所有 {{ store.itemToDelete?.count }} 条</span> 归档回答吗？
+        <p class="mt-2 text-xs text-red-500 font-medium">此操作不可逆，将同时清除相关的本地图片文件和评论数据。</p>
+      </template>
+      <template v-else-if="store.itemToDeleteType === 'answer'">
         您确定要永久删除归档 <span class="font-bold text-gray-800">"{{ store.itemToDelete?.title }}"</span> 吗？
         <p class="mt-2 text-xs text-red-500 font-medium">此操作不可逆，将同时清除相关的本地图片文件和评论数据。</p>
       </template>

@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen md:h-screen w-full bg-white md:flex md:flex-col font-sans antialiased select-none md:overflow-hidden">
+  <div class="h-[100dvh] w-full bg-white flex flex-col font-sans antialiased select-none overflow-hidden">
     
     <div class="sticky md:static top-0 z-40">
       <AppHeader />
     </div>
 
-    <div class="md:flex-1 md:flex md:overflow-hidden">
+    <div class="flex-1 flex overflow-hidden">
       
       <div v-show="store.isDesktopSidebarOpen" class="hidden md:block flex-shrink-0 z-30 h-full">
         <AppSidebar />
@@ -24,16 +24,15 @@
       </div>
 
       <!-- 右侧主内容展示区 -->
-      <main class="md:flex-1 bg-gray-50/30 md:bg-white relative md:flex md:flex-col min-w-0 md:h-full">
+      <main class="flex-1 bg-gray-50/30 md:bg-white relative flex flex-col min-w-0 h-full">
         
-        <div id="main-scroll-container" class="md:flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text md:overflow-y-auto">
+        <div id="main-scroll-container" class="flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text overflow-y-auto">
         <!-- 删除确认弹窗 -->
         <DeleteConfirmModal />
 
         <!-- 主页视图 -->
         <div v-if="store.currentView === 'home'" class="md:h-full">
           <ArticleDetail v-if="store.currentAnswer" />
-          <GroupDetail v-else-if="store.currentGroup" />
           <HomeView v-else />
         </div>
 
@@ -98,7 +97,6 @@ import { useArchiveStore } from './stores/archive'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppSidebar from './components/layout/AppSidebar.vue'
 import HomeView from './components/views/HomeView.vue'
-import GroupDetail from './components/views/GroupDetail.vue'
 import ArticleDetail from './components/views/ArticleDetail.vue'
 import AddArchiveModal from './components/modals/AddArchiveModal.vue'
 import LoginModal from './components/modals/LoginModal.vue'

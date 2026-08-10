@@ -199,6 +199,10 @@ export const useArchiveStore = defineStore('archive', () => {
   }
 
   const selectGroup = async (group) => {
+    if (typeof window !== 'undefined' && !currentGroup.value) {
+      const el = document.getElementById('main-scroll-container')
+      savedScrollY.value = el ? el.scrollTop : 0
+    }
     currentGroup.value = group
     if (group.answers && group.answers.length > 0) {
       // 先用前端现有的数据加载第一篇，保证响应速度
@@ -238,10 +242,30 @@ export const useArchiveStore = defineStore('archive', () => {
       itemToDelete.value = null
       return
     }
+    
+    if (itemToDeleteType.value === 'group') {
+      const group = itemToDelete.value
+      try {
+        const title = encodeURIComponent(group.answers[0].title || '')
+        const qid = encodeURIComponent(group.answers[0].question_id || '')
+        const res = await apiFetch(`${API_BASE}/api/group/answers?title=${title}&question_id=${qid}`, { method: 'DELETE' })
+        if (res.ok) {
+          answers.value = answers.value.filter(a => !(a.title === group.answers[0].title && a.question_id === group.answers[0].question_id))
+          totalCount.value = Math.max(0, totalCount.value - group.count)
+          itemToDelete.value = null
+          itemToDeleteType.value = 'answer'
+        } else {
+          const errData = await res.json()
+          showAlert('删除失败', errData.message)
+        }
+      } catch (e) {
+        console.error(e)
+        showAlert('错误', '网络请求失败')
+      }
+      return
+    }
 
     const id = itemToDelete.value.answer_id
-    itemToDelete.value = null
-
     try {
       const res = await apiFetch(`${API_BASE}/api/answers/${id}`, { method: 'DELETE' })
       if (res.ok) {
@@ -266,6 +290,7 @@ export const useArchiveStore = defineStore('archive', () => {
         // 直接从本地列表移除，不重新拉取（避免重置分页）
         answers.value = answers.value.filter(a => a.answer_id !== id)
         totalCount.value = Math.max(0, totalCount.value - 1)
+        itemToDelete.value = null
       } else {
         const errData = await res.json()
         showAlert('删除失败', errData.message)
@@ -273,6 +298,45 @@ export const useArchiveStore = defineStore('archive', () => {
     } catch (e) {
       console.error(e)
       showAlert('错误', '网络请求失败')
+    }
+  }
+
+  const toggleFavorite = async (groupOrAnswer, isGroup) => {
+    try {
+      if (isGroup) {
+        const title = encodeURIComponent(groupOrAnswer.answers[0].title || '')
+        const qid = encodeURIComponent(groupOrAnswer.answers[0].question_id || '')
+        const res = await apiFetch(`${API_BASE}/api/group/answers/favorite?title=${title}&question_id=${qid}`, { method: 'POST' })
+        if (res.ok) {
+          const data = await res.json()
+          // Update local state
+          groupOrAnswer.answers[0].is_favorite = data.is_favorite
+          // Update in answers list
+          answers.value.forEach(a => {
+            if (a.title === groupOrAnswer.answers[0].title && a.question_id === groupOrAnswer.answers[0].question_id) {
+              a.is_favorite = data.is_favorite
+            }
+          })
+          if (currentGroup.value && currentGroup.value.groupKey === groupOrAnswer.groupKey) {
+            currentGroup.value.answers.forEach(a => a.is_favorite = data.is_favorite)
+          }
+        }
+      } else {
+        const id = groupOrAnswer.answer_id
+        const res = await apiFetch(`${API_BASE}/api/answers/${id}/favorite`, { method: 'POST' })
+        if (res.ok) {
+          const data = await res.json()
+          groupOrAnswer.is_favorite = data.is_favorite
+          // Update in answers list
+          const a = answers.value.find(x => x.answer_id === id)
+          if (a) a.is_favorite = data.is_favorite
+          if (currentAnswer.value?.answer_id === id) {
+            currentAnswer.value.is_favorite = data.is_favorite
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e)
     }
   }
 
@@ -308,7 +372,7 @@ export const useArchiveStore = defineStore('archive', () => {
       const hasTitle = item.title && item.title.trim() !== ''
       const hasQid = item.question_id && item.question_id !== '0' && item.question_id !== 0
 
-      if (!hasTitle) {
+      if (!hasTitle || item.question_id === 'twitter') {
         groups.push({
           groupKey: `solo_${item.answer_id}`,
           title: item.title,
@@ -395,6 +459,7 @@ export const useArchiveStore = defineStore('archive', () => {
     onArchiveSuccess,
     confirmDelete,
     toggleGroup,
+    toggleFavorite,
 
     tags,
     filteredAnswers,

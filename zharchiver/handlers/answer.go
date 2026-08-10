@@ -247,6 +247,72 @@ func (env *HandlerEnv) handleDeleteAnswer(w http.ResponseWriter, r *http.Request
 	})
 }
 
+func (env *HandlerEnv) handleDeleteGroup(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Query().Get("title")
+	questionID := r.URL.Query().Get("question_id")
+
+	if title == "" && questionID == "" {
+		http.Error(w, "缺少参数", http.StatusBadRequest)
+		return
+	}
+
+	rowsAffected, err := models.DeleteGroup(env.db, title, questionID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("删除归档失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	if rowsAffected == 0 {
+		http.Error(w, "未找到该归档记录", http.StatusNotFound)
+		return
+	}
+
+	utils.BroadcastLog("INFO", fmt.Sprintf("批量删除了归档组 (Title: %s, QID: %s)，共 %d 条", title, questionID, rowsAffected))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"code":    0,
+		"message": "删除成功",
+	})
+}
+
+func (env *HandlerEnv) handleToggleFavorite(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "缺少 id 参数", http.StatusBadRequest)
+		return
+	}
+	newFav, err := models.ToggleFavorite(env.db, id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("收藏失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"code":        0,
+		"is_favorite": newFav,
+	})
+}
+
+func (env *HandlerEnv) handleToggleGroupFavorite(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Query().Get("title")
+	questionID := r.URL.Query().Get("question_id")
+
+	if title == "" && questionID == "" {
+		http.Error(w, "缺少参数", http.StatusBadRequest)
+		return
+	}
+	newFav, err := models.ToggleGroupFavorite(env.db, title, questionID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("批量收藏失败: %v", err), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"code":        0,
+		"is_favorite": newFav,
+	})
+}
+
 func (env *HandlerEnv) handleArchive(w http.ResponseWriter, r *http.Request) {
 	var req ArchiveRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.URL) == "" {
