@@ -33,6 +33,7 @@
         <span class="text-xs text-gray-400">归档完成后的后续处理</span>
       </div>
       <div class="p-4 md:p-5 space-y-4">
+        <!-- 自动推送 TG -->
         <div class="flex items-center justify-between h-8">
           <label class="block text-sm font-medium text-gray-700">归档成功后自动推送至 Telegram</label>
           <div class="flex items-center space-x-3">
@@ -46,8 +47,26 @@
             </div>
           </div>
         </div>
-        <p class="text-xs text-gray-400">
+        <p class="text-xs text-gray-400 border-b border-gray-100 pb-4">
           * 开启后，无论是网页手动归档还是发给 Telegram 归档机器人，归档成功后都会调用推送机器人自动发送图文。
+        </p>
+
+        <!-- AI 自动归类 -->
+        <div class="flex items-center justify-between h-8 pt-2">
+          <label class="block text-sm font-medium text-gray-700">归档时由 AI 自动生成分类标签</label>
+          <div class="flex items-center space-x-3">
+            <div 
+              @click="toggleAutoCategorize"
+              :class="['w-11 h-6 rounded-full cursor-pointer transition-colors relative flex-shrink-0', autoCategorizeEnabled ? 'bg-brand' : 'bg-gray-300']"
+            >
+              <div 
+                :class="['w-5 h-5 bg-white rounded-full absolute top-0.5 shadow transition-transform', autoCategorizeEnabled ? 'translate-x-5.5' : 'translate-x-0.5']"
+              ></div>
+            </div>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400">
+          * 开启后，系统在归档网页、推特或截图时，若未指定标签，大模型将根据内容智能匹配您的已有标签或创建新标签。
         </p>
       </div>
     </div>
@@ -60,6 +79,7 @@ import { useArchiveStore } from '../../stores/archive'
 
 const store = useArchiveStore()
 const autoPushEnabled = ref(false)
+const autoCategorizeEnabled = ref(false)
 
 const updateViewMode = (mode) => {
   store.setViewMode(mode)
@@ -71,6 +91,7 @@ onMounted(async () => {
     if (res.ok) {
       const data = await res.json()
       autoPushEnabled.value = data.auto_push_enabled === 'true'
+      autoCategorizeEnabled.value = data.auto_categorization_enabled === 'true'
     }
   } catch (err) {
     console.error('获取偏好设置失败:', err)
@@ -79,14 +100,26 @@ onMounted(async () => {
 
 const toggleAutoPush = async () => {
   autoPushEnabled.value = !autoPushEnabled.value
+  await updatePreferences()
+}
+
+const toggleAutoCategorize = async () => {
+  autoCategorizeEnabled.value = !autoCategorizeEnabled.value
+  await updatePreferences()
+}
+
+const updatePreferences = async () => {
   try {
     const res = await store.apiFetch('/api/settings/preferences', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ auto_push_enabled: autoPushEnabled.value ? 'true' : 'false' })
+      body: JSON.stringify({ 
+        auto_push_enabled: autoPushEnabled.value ? 'true' : 'false',
+        auto_categorization_enabled: autoCategorizeEnabled.value ? 'true' : 'false'
+      })
     })
     if (res.ok) {
-      store.showToast('自动推送设置已更新')
+      store.showToast('设置已更新')
     } else {
       store.showToast('设置更新失败，请重试', 'error')
     }

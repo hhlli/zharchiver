@@ -34,6 +34,13 @@ type AnswerSummary struct {
 }
 
 func SaveAnswer(db *sql.DB, data *AnswerData) error {
+	if data.Tag != "" {
+		var existingColor string
+		err := db.QueryRow("SELECT tag_color FROM answers WHERE tag = ? AND tag_color != '' LIMIT 1", data.Tag).Scan(&existingColor)
+		if err == nil && existingColor != "" {
+			data.TagColor = existingColor
+		}
+	}
 	if data.TagColor == "" {
 		data.TagColor = "blue"
 	}

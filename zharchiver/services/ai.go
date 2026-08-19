@@ -48,12 +48,113 @@ type aiExtractedData struct {
 	Title       string `json:"title"`
 	AuthorName  string `json:"author_name"`
 	ContentHTML string `json:"content_html"`
+	Tag         string `json:"tag,omitempty"`
+}
+
+func getExistingTagsStr(db *sql.DB) string {
+	rows, err := db.Query("SELECT DISTINCT tag FROM answers WHERE tag != ''")
+	if err != nil {
+		return ""
+	}
+	defer rows.Close()
+	var tags []string
+	for rows.Next() {
+		var tag string
+		if err := rows.Scan(&tag); err == nil {
+			tags = append(tags, tag)
+		}
+	}
+	if len(tags) == 0 {
+		return ""
+	}
+	return strings.Join(tags, ", ")
+}
+
+// SuggestTagByAI 用于纯文本的自动打标
+func SuggestTagByAI(db *sql.DB, title, cleanContent string) string {
+	baseURL := models.GetSetting(db, "ai_base_url")
+	apiKey := models.GetSetting(db, "ai_api_key")
+	modelName := models.GetSetting(db, "ai_model_name")
+
+	if baseURL == "" || apiKey == "" || modelName == "" {
+		return ""
+	}
+
+	tagsStr := getExistingTagsStr(db)
+	
+	// 截取最多 1500 字符防止内容过长
+	if len(cleanContent) > 1500 {
+		runes := []rune(cleanContent)
+		if len(runes) > 1500 {
+			cleanContent = string(runes[:1500])
+		}
+	}
+
+	prompt := fmt.Sprintf(`你是一个归档整理助手。请阅读以下文章标题和正文摘要，并选择最匹配的标签。
+候选标签列表：[%s]。
+如果都不合适，请结合内容自己提炼一个不超过4个字的新标签。
+请严格输出纯 JSON 对象，不要带Markdown格式，结构如下：
+{"recommended_tag": "..."}
+
+文章标题：%s
+正文摘要：%s`, tagsStr, title, cleanContent)
+
+	reqBody := map[string]interface{}{
+		"model": modelName,
+		"messages": []map[string]interface{}{
+			{
+				"role":    "user",
+				"content": prompt,
+			},
+		},
+	}
+
+	jsonBytes, _ := json.Marshal(reqBody)
+	req, err := http.NewRequest("POST", baseURL, bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return ""
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return ""
+	}
+	defer resp.Body.Close()
+
+	var aiResp aiVisionResponse
+	if err := json.NewDecoder(resp.Body).Decode(&aiResp); err != nil || len(aiResp.Choices) == 0 {
+		return ""
+	}
+
+	contentStr := strings.TrimSpace(aiResp.Choices[0].Message.Content)
+	if strings.HasPrefix(contentStr, "```json") {
+		contentStr = strings.TrimPrefix(contentStr, "```json")
+		contentStr = strings.TrimSuffix(contentStr, "```")
+	} else if strings.HasPrefix(contentStr, "```") {
+		contentStr = strings.TrimPrefix(contentStr, "```")
+		contentStr = strings.TrimSuffix(contentStr, "```")
+	}
+
+	var extracted struct {
+		RecommendedTag string `json:"recommended_tag"`
+	}
+	if err := json.Unmarshal([]byte(contentStr), &extracted); err == nil {
+		return extracted.RecommendedTag
+	}
+	return ""
 }
 
 func ProcessImageArchiveTask(db *sql.DB, imgBytes []byte) (*models.AnswerData, error) {
 	baseURL := models.GetSetting(db, "ai_base_url")
 	apiKey := models.GetSetting(db, "ai_api_key")
 	modelName := models.GetSetting(db, "ai_model_name")
+	autoCategorize := models.GetSetting(db, "auto_categorization_enabled") == "true"
 
 	if baseURL == "" || apiKey == "" || modelName == "" {
 		return nil, errors.New("AI 助手未完全配置，请在设置中完善信息")
@@ -67,14 +168,21 @@ func ProcessImageArchiveTask(db *sql.DB, imgBytes []byte) (*models.AnswerData, e
 提取出：
 1. 标题(如有)
 2. 作者名称(如有)
-3. 回答正文(转化为基本的HTML格式，如 <p>, <b> 等，不要使用 Markdown)
+3. 回答正文(转化为基本的HTML格式，如 <p>, <b> 等，不要使用 Markdown)`
 
-请严格输出纯 JSON 对象，格式必须完全符合以下结构，不要输出任何其他解释文字或 Markdown 代码块：
-{
+	jsonStructure := `{
   "title": "...",
   "author_name": "...",
-  "content_html": "..."
-}`
+  "content_html": "..."`
+
+	if autoCategorize {
+		tagsStr := getExistingTagsStr(db)
+		prompt += fmt.Sprintf("\n4. 标签：请结合内容，从已有标签列表 [%s] 中选择最匹配的一个。如果都不合适，请提炼一个不超过4个字的新标签。", tagsStr)
+		jsonStructure += ",\n  \"tag\": \"...\""
+	}
+	jsonStructure += "\n}"
+
+	prompt += fmt.Sprintf("\n\n请严格输出纯 JSON 对象，格式必须完全符合以下结构，不要输出任何其他解释文字或 Markdown 代码块：\n%s", jsonStructure)
 
 	reqBody := aiVisionRequest{
 		Model: modelName,
@@ -148,21 +256,28 @@ func ProcessImageArchiveTask(db *sql.DB, imgBytes []byte) (*models.AnswerData, e
 
 	// 存入数据库
 	uuid := fmt.Sprintf("img_%d", time.Now().UnixNano())
-	now := time.Now().Format("2006-01-02 15:04:05")
 	
-	_, err = db.Exec(`
-		INSERT INTO answers (answer_id, question_id, title, author_name, author_avatar, content_html, created_time, updated_time, saved_at) 
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, uuid, 0, extracted.Title, extracted.AuthorName, "", extracted.ContentHTML, 0, 0, now)
+	tagToSave := extracted.Tag
+	if tagToSave == "" && autoCategorize {
+		tagToSave = "未分类"
+	}
+	
+	data := &models.AnswerData{
+		AnswerID:    uuid,
+		QuestionID:  "0",
+		Title:       extracted.Title,
+		AuthorName:  extracted.AuthorName,
+		ContentHTML: extracted.ContentHTML,
+		CreatedTime: time.Now().Unix(),
+		UpdatedTime: time.Now().Unix(),
+		Tag:         tagToSave,
+		TagColor:    "blue",
+	}
 
+	err = models.SaveAnswer(db, data)
 	if err != nil {
 		return nil, fmt.Errorf("存入数据库失败: %v", err)
 	}
 
-	return &models.AnswerData{
-		AnswerID:    uuid,
-		Title:       extracted.Title,
-		AuthorName:  extracted.AuthorName,
-		ContentHTML: extracted.ContentHTML,
-	}, nil
+	return data, nil
 }

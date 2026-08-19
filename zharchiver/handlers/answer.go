@@ -171,7 +171,7 @@ func (env *HandlerEnv) handleGetAllTags(w http.ResponseWriter, r *http.Request) 
 		Name  string `json:"name"`
 		Color string `json:"color"`
 	}
-	rows, err := env.db.Query("SELECT DISTINCT tag, tag_color FROM answers WHERE tag != '' ORDER BY tag")
+	rows, err := env.db.Query("SELECT tag, MAX(tag_color) FROM answers WHERE tag != '' GROUP BY tag ORDER BY tag")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -9,7 +9,8 @@ import (
 
 func (env *HandlerEnv) handleGetPreferences(w http.ResponseWriter, r *http.Request) {
 	settings := map[string]string{
-		"auto_push_enabled": models.GetSetting(env.db, "auto_push_enabled"),
+		"auto_push_enabled":           models.GetSetting(env.db, "auto_push_enabled"),
+		"auto_categorization_enabled": models.GetSetting(env.db, "auto_categorization_enabled"),
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(settings)
@@ -24,6 +25,9 @@ func (env *HandlerEnv) handleSavePreferences(w http.ResponseWriter, r *http.Requ
 	
 	if val, ok := req["auto_push_enabled"]; ok {
 		models.SetSetting(env.db, "auto_push_enabled", val)
+	}
+	if val, ok := req["auto_categorization_enabled"]; ok {
+		models.SetSetting(env.db, "auto_categorization_enabled", val)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

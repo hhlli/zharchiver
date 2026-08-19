@@ -119,6 +119,21 @@ func ProcessTwitterTask(db *sql.DB, urlStr string, tag string) (*models.AnswerDa
 		utils.BroadcastLog("INFO", fmt.Sprintf("解析到 %d 个媒体文件", len(mediaURLs)))
 	}
 
+	autoCategorize := models.GetSetting(db, "auto_categorization_enabled") == "true"
+	if tag == "" && autoCategorize {
+		utils.BroadcastLog("INFO", "未指定标签且已开启自动分类，正在调用 AI 进行分类...")
+		recommendedTag := SuggestTagByAI(db, title, tweet.Text)
+		if recommendedTag != "" {
+			tag = recommendedTag
+			utils.BroadcastLog("INFO", fmt.Sprintf("AI 自动分类成功，分配标签：%s", tag))
+		} else {
+			tag = "未分类"
+			utils.BroadcastLog("WARN", "AI 自动分类未返回结果，默认分配：未分类")
+		}
+	} else if tag == "" {
+		tag = "未分类"
+	}
+
 	data := &models.AnswerData{
 		AnswerID:    tweet.ID,
 		QuestionID:  "twitter", // X平台数据统一放在 twitter 分类下

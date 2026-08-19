@@ -206,6 +206,22 @@ func ProcessArchiveTask(db *sql.DB, url string, tag string) (*models.AnswerData,
     }
 
     utils.BroadcastLog("INFO", "准备将归档数据写入 SQLite 数据库...")
+	autoCategorize := models.GetSetting(db, "auto_categorization_enabled") == "true"
+	if tag == "" && autoCategorize {
+		utils.BroadcastLog("INFO", "未指定标签且已开启自动分类，正在调用 AI 进行分类...")
+		// 去除基础 HTML 标签防止超过长度限制
+		cleanContent := regexp.MustCompile(`<[^>]*>`).ReplaceAllString(data.ContentHTML, "")
+		recommendedTag := SuggestTagByAI(db, data.Title, cleanContent)
+		if recommendedTag != "" {
+			tag = recommendedTag
+			utils.BroadcastLog("INFO", fmt.Sprintf("AI 自动分类成功，分配标签：%s", tag))
+		} else {
+			tag = "未分类"
+			utils.BroadcastLog("WARN", "AI 自动分类未返回结果，默认分配：未分类")
+		}
+	} else if tag == "" {
+		tag = "未分类"
+	}
    	data.Tag = tag
 
 	// 保存到数据库
