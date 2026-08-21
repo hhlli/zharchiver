@@ -35,7 +35,7 @@
             @click="selectCategory(tag.name)"
             :class="['w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition cursor-pointer', store.activeCategory === tag.name && !store.currentAnswer ? 'bg-blue-100 text-brand-hover shadow-sm' : 'text-gray-600 hover:bg-gray-200/50']"
           >
-            <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.1)]" :style="{ background: getTagBackground(tag.color) }"></span>
+            <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.12)]" :style="{ background: resolveTagBackground(tag.color) }"></span>
             <span class="truncate">{{ tag.name }}</span>
           </button>
         </div>
@@ -102,6 +102,7 @@
 
 <script setup>
 import { useArchiveStore } from '../../stores/archive'
+import { resolveTagBackground } from '../../utils/tagColor'
 
 const store = useArchiveStore()
 
@@ -109,38 +110,15 @@ const selectCategory = (category) => {
   store.activeCategory = category
   store.currentAnswer = null
   store.currentGroup = null
-  // 切换标签后滚回顶部
   setTimeout(() => {
     const el = document.getElementById('main-scroll-container')
     if (el) el.scrollTop = 0
   }, 30)
 }
 
+
 const openSettings = () => {
   store.currentView = 'settings'
   store.currentAnswer = null
-}
-
-const getTagBackground = (colorKey) => {
-  if (!colorKey) return '#3b82f6';
-  if (colorKey.startsWith('#') || colorKey.startsWith('linear-gradient')) return colorKey;
-
-  const hexColors = {
-    blue: '#3b82f6', red: '#ef4444', green: '#10b981', yellow: '#f59e0b',
-    purple: '#8b5cf6', pink: '#ec4899', indigo: '#6366f1', teal: '#14b8a6',
-    orange: '#f97316', cyan: '#06b6d4', slate: '#64748b'
-  };
-  const gradients = {
-    sunset: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-    ocean: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    purplegrad: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
-    forest: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
-    night: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
-    warm: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-    cool: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
-    emerald: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-    deep: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-  };
-  return hexColors[colorKey] || gradients[colorKey] || '#3b82f6';
 }
 </script>

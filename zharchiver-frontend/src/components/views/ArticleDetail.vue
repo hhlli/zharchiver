@@ -29,7 +29,7 @@
             <span 
               @click="startEditTag" 
               class="border px-2 py-0.5 rounded-md font-medium tracking-wider cursor-pointer select-none hover:opacity-80 transition"
-              :style="getTagStyle(store.currentAnswer?.tag_color)"
+              :style="resolveTagStyle(store.currentAnswer?.tag_color)"
               title="点击编辑标签"
             >
               {{ store.currentAnswer?.tag || 'ANSWER' }}
@@ -128,7 +128,7 @@
                 @mousedown.prevent="selectExistingTag(t)"
                 class="px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center space-x-2"
               >
-                <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.1)]" :style="{ background: getTagBackground(t.color) }"></span>
+                <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.12)]" :style="{ background: resolveTagBackground(t.color) }"></span>
                 <span class="truncate">{{ t.name }}</span>
               </div>
             </div>
@@ -163,13 +163,11 @@ import RichEditor from '../RichEditor.vue'
 import DOMPurify from 'dompurify'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
+import { resolveTagBackground, resolveTagStyle, colorToPickerState, pickerStateToColor } from '../../utils/tagColor'
 
 const store = useArchiveStore()
 
-const pureColor = ref('#3b82f6')
-const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
-const activeKey = ref('pure')
-
+// ── 文章编辑 ──────────────────────────────────────────────────────────────────
 const isEditing = ref(false)
 const editTitle = ref('')
 const editContent = ref('')
@@ -185,39 +183,30 @@ const autoResizeTitle = () => {
 
 const enterEditMode = async () => {
   editTitle.value = store.currentAnswer?.title || ''
-  editContent.value = processHtmlContent(store.currentAnswer?.content_html) // 用处理好 token 的 HTML 喂给编辑器
+  editContent.value = processHtmlContent(store.currentAnswer?.content_html)
   isEditing.value = true
   await nextTick()
   autoResizeTitle()
 }
 
-const cancelEdit = () => {
-  isEditing.value = false
-}
+const cancelEdit = () => { isEditing.value = false }
 
 const saveEdit = async () => {
   if (!store.currentAnswer) return
   saving.value = true
   try {
-    // 保存时，我们需要把 HTML 里的 token 剥离掉，存入纯净的 storage 相对路径
-    const cleanContent = editContent.value.replace(new RegExp(`\\?token=${localStorage.getItem('token') || ''}`, 'g'), '')
-    
+    const cleanContent = editContent.value.replace(
+      new RegExp(`\\?token=${localStorage.getItem('token') || ''}`, 'g'), ''
+    )
     const res = await store.apiFetch(`/api/answers/${store.currentAnswer.answer_id}/content`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        title: editTitle.value.trim(), 
-        content_html: cleanContent
-      })
+      body: JSON.stringify({ title: editTitle.value.trim(), content_html: cleanContent })
     })
-    
-    if (!res.ok) throw new Error("保存失败")
-    
+    if (!res.ok) throw new Error('保存失败')
     store.currentAnswer.title = editTitle.value.trim()
     store.currentAnswer.content_html = cleanContent
     isEditing.value = false
-    
-    // 更新左侧列表，确保左侧列表标题也变了
     store.fetchAnswersList()
   } catch (err) {
     store.showToast(err.message, 'error')
@@ -226,116 +215,63 @@ const saveEdit = async () => {
   }
 }
 
+// ── 评论 ──────────────────────────────────────────────────────────────────────
 const commentRefreshKey = ref(0)
-const onCommentAdded = () => {
-  commentRefreshKey.value++
-}
+const onCommentAdded = () => { commentRefreshKey.value++ }
 
+// ── 标签编辑 ──────────────────────────────────────────────────────────────────
 const isEditingTag = ref(false)
 const editTagValue = ref('')
 const showTagDropdown = ref(false)
 
-const hideTagDropdown = () => {
-  showTagDropdown.value = false
-}
+// ColorPicker 三状态
+const pureColor = ref('#3b82f6')
+const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
+const activeKey = ref('pure')
 
+const hideTagDropdown = () => { showTagDropdown.value = false }
+
+/** 点击下拉项：选中已有标签并同步颜色到 picker */
 const selectExistingTag = (t) => {
   editTagValue.value = t.name
-  if (t.color && t.color.startsWith('linear-gradient')) {
-    gradientColor.value = t.color
-    activeKey.value = 'gradient'
-  } else {
-    pureColor.value = t.color && t.color.startsWith('#') ? t.color : (hexColors[t.color] || '#3b82f6')
-    activeKey.value = 'pure'
-  }
+  const state = colorToPickerState(t.color)
+  pureColor.value = state.pureColor
+  gradientColor.value = state.gradientColor
+  activeKey.value = state.activeKey
   showTagDropdown.value = false
 }
 
+/** 手动输入标签名：如果恰好匹配已有标签，自动同步颜色 */
 watch(editTagValue, (newVal) => {
   const existing = store.allTags.find(t => t.name === newVal)
   if (existing) {
-    if (existing.color && existing.color.startsWith('linear-gradient')) {
-      gradientColor.value = existing.color
-      activeKey.value = 'gradient'
-    } else {
-      pureColor.value = existing.color && existing.color.startsWith('#') ? existing.color : (hexColors[existing.color] || '#3b82f6')
-      activeKey.value = 'pure'
-    }
+    const state = colorToPickerState(existing.color)
+    pureColor.value = state.pureColor
+    gradientColor.value = state.gradientColor
+    activeKey.value = state.activeKey
   }
 })
 
-const hexColors = {
-  blue: '#3b82f6',
-  red: '#ef4444',
-  green: '#10b981',
-  yellow: '#f59e0b',
-  purple: '#8b5cf6',
-  pink: '#ec4899',
-  indigo: '#6366f1',
-  teal: '#14b8a6',
-  orange: '#f97316',
-  cyan: '#06b6d4',
-  slate: '#64748b'
-}
-
-const getTagBackground = (colorVal) => {
-  if (!colorVal) return hexColors.blue;
-  if (colorVal.startsWith('#') || colorVal.startsWith('linear-gradient') || colorVal.startsWith('rgb') || colorVal.startsWith('hsl')) return colorVal;
-  return hexColors[colorVal] || hexColors.blue;
-}
-
-const getTagStyle = (colorKey) => {
-  const hex = hexColors[colorKey] || (colorKey && colorKey.startsWith('#') ? colorKey : null);
-  if (hex) {
-    return {
-      backgroundColor: hex + '1A',
-      color: hex,
-      borderColor: hex + '33'
-    }
-  }
-  // 如果是渐变色或其他，我们使用透明底色，文字使用渐变色（通过 -webkit-background-clip）或直接用品牌蓝作为后备
-  if (colorKey && colorKey.startsWith('linear-gradient')) {
-    return {
-      background: colorKey,
-      color: 'white',
-      borderColor: 'transparent'
-    }
-  }
-  return {
-    backgroundColor: '#3b82f61A',
-    color: '#3b82f6',
-    borderColor: '#3b82f633'
-  }
-}
-
+/** 点击标签文字 → 打开编辑弹窗 */
 const startEditTag = () => {
   editTagValue.value = store.currentAnswer?.tag || ''
-  const color = store.currentAnswer?.tag_color || 'blue'
-  
-  if (color && color.startsWith('linear-gradient')) {
-    gradientColor.value = color
-    activeKey.value = 'gradient'
-  } else {
-    pureColor.value = color && color.startsWith('#') ? color : (hexColors[color] || '#3b82f6')
-    activeKey.value = 'pure'
-  }
+  const state = colorToPickerState(store.currentAnswer?.tag_color)
+  pureColor.value = state.pureColor
+  gradientColor.value = state.gradientColor
+  activeKey.value = state.activeKey
   isEditingTag.value = true
 }
 
 const saveTag = async () => {
   if (!store.currentAnswer) return
-
-  const finalColor = activeKey.value === 'gradient' ? gradientColor.value : pureColor.value
-
+  const finalColor = pickerStateToColor(activeKey.value, pureColor.value, gradientColor.value)
   try {
     const res = await store.apiFetch(`/api/answers/${store.currentAnswer.answer_id}/tag`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tag: editTagValue.value.trim(), color: finalColor })
     })
-    if (!res.ok) throw new Error("标签更新失败")
-    
-    // 乐观更新
+    if (!res.ok) throw new Error('标签更新失败')
     store.currentAnswer.tag = editTagValue.value.trim()
     store.currentAnswer.tag_color = finalColor
     isEditingTag.value = false
@@ -345,34 +281,23 @@ const saveTag = async () => {
   }
 }
 
+// ── 内容处理 ──────────────────────────────────────────────────────────────────
 const processHtmlContent = (html) => {
   if (!html) return ''
   const token = localStorage.getItem('token') || ''
-  
   const processed = html.replace(/src="\/storage\/([^"]+)"/g, (match, p1) => {
     const url = `${store.API_BASE}/storage/${p1}`
     return token ? `src="${url}?token=${token}"` : `src="${url}"`
   })
-  
   return DOMPurify.sanitize(processed, { ADD_TAGS: ['video', 'source'], ADD_ATTR: ['controls'] })
 }
 
-const formatTimestamp = (ts) => {
-  if (!ts) return ''
-  return new Date(ts * 1000).toLocaleString()
-}
+const formatTimestamp = (ts) => ts ? new Date(ts * 1000).toLocaleString() : ''
+const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString() : ''
 
 const getOriginalUrl = (answer) => {
   if (!answer) return '#'
-  if (answer.question_id === 'twitter') {
-    return `https://x.com/i/status/${answer.answer_id}`
-  } else {
-    return `https://www.zhihu.com/question/${answer.question_id}/answer/${answer.answer_id}`
-  }
-}
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString()
+  if (answer.question_id === 'twitter') return `https://x.com/i/status/${answer.answer_id}`
+  return `https://www.zhihu.com/question/${answer.question_id}/answer/${answer.answer_id}`
 }
 </script>
