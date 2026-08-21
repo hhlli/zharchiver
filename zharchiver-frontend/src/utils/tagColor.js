@@ -69,34 +69,3 @@ export function resolveTagStyle(colorVal) {
   }
 }
 
-/**
- * 将数据库颜色值转换为 ColorPicker 组件所需的三个响应式状态初始值。
- * @param {string} colorVal - 数据库中存储的颜色值
- * @returns {{ pureColor: string, gradientColor: string, activeKey: 'pure' | 'gradient' }}
- */
-export function colorToPickerState(colorVal) {
-  const resolved = resolveTagBackground(colorVal)
-  if (resolved.startsWith('linear-gradient')) {
-    return {
-      pureColor: DEFAULT_HEX,
-      gradientColor: resolved,
-      activeKey: 'gradient',
-    }
-  }
-  return {
-    pureColor: resolved,
-    gradientColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    activeKey: 'pure',
-  }
-}
-
-/**
- * 从 ColorPicker 的三个状态读取最终要存入数据库的颜色字符串。
- * @param {'pure' | 'gradient'} activeKey
- * @param {string} pureColor
- * @param {string} gradientColor
- * @returns {string}
- */
-export function pickerStateToColor(activeKey, pureColor, gradientColor) {
-  return activeKey === 'gradient' ? gradientColor : pureColor
-}
