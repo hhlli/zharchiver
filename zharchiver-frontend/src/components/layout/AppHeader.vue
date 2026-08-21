@@ -32,7 +32,7 @@
       <TagSelectDropdown
         v-if="store.currentView === 'home'"
         v-model="store.activeCategory"
-        :tags="store.tags"
+        :tags="store.allTags"
       />
       
       <!-- 新增归档按钮 -->
