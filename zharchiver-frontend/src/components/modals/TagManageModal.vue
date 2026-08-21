@@ -50,9 +50,16 @@
                 </div>
               </div>
 
-              <label class="text-xs text-gray-500 block mb-1.5">渐变 (推荐)</label>
-              <div class="flex flex-wrap gap-2 items-center">
-                <button v-for="(grad, g) in gradients" :key="g" @click="editForm.color = g" :class="['w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0 shadow-sm border border-black/5', editForm.color === g ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ background: grad }"></button>
+              <label class="text-xs text-gray-500 block mb-1.5">自定义渐变色</label>
+              <div class="flex items-center space-x-2">
+                <div class="relative w-6 h-6 rounded-md shadow-sm border border-black/10 flex-shrink-0" :style="{ background: gradientStart }">
+                  <input type="color" v-model="gradientStart" @change="updateCustomGradient" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                </div>
+                <span class="text-gray-300 text-xs">➔</span>
+                <div class="relative w-6 h-6 rounded-md shadow-sm border border-black/10 flex-shrink-0" :style="{ background: gradientEnd }">
+                  <input type="color" v-model="gradientEnd" @change="updateCustomGradient" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                </div>
+                <div class="ml-3 w-16 h-6 rounded-md shadow-sm border border-black/10" :style="{ background: `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)` }"></div>
               </div>
             </div>
             <div class="flex justify-end space-x-2 pt-1">
@@ -117,6 +124,13 @@ const editingTag = ref(null)
 const editForm = ref({ name: '', color: 'blue' })
 const isProcessing = ref(false)
 
+const gradientStart = ref('#4facfe')
+const gradientEnd = ref('#00f2fe')
+
+const updateCustomGradient = () => {
+  editForm.value.color = `linear-gradient(135deg, ${gradientStart.value} 0%, ${gradientEnd.value} 100%)`
+}
+
 const closeModal = () => {
   editingTag.value = null
   store.showTagManageModal = false
@@ -125,6 +139,17 @@ const closeModal = () => {
 const startEdit = (tag) => {
   editingTag.value = tag.name
   editForm.value = { name: tag.name, color: tag.color }
+  
+  if (tag.color && tag.color.startsWith('linear-gradient')) {
+    const match = tag.color.match(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g)
+    if (match && match.length >= 2) {
+      gradientStart.value = match[0]
+      gradientEnd.value = match[1]
+    }
+  } else {
+    gradientStart.value = '#4facfe'
+    gradientEnd.value = '#00f2fe'
+  }
 }
 
 const saveTag = async (oldName) => {
