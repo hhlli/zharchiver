@@ -39,25 +39,7 @@
             </div>
             <div>
               <label class="text-xs text-gray-500 block mb-2">标签颜色</label>
-              <!-- 实时预览 + 触发调色盘 -->
-              <div class="flex items-center space-x-3">
-                <div
-                  class="w-5 h-5 rounded-full flex-shrink-0 shadow-sm border border-black/10 cursor-pointer transition hover:scale-110"
-                  :style="{ background: currentPreviewColor }"
-                  title="当前颜色预览"
-                ></div>
-                <div class="flex-1 bg-gray-50 rounded-lg border border-gray-100 p-2 flex justify-center">
-                  <ColorPicker
-                    isWidget
-                    :pureColor="pureColor"
-                    :gradientColor="gradientColor"
-                    :activeKey="activeKey"
-                    @update:pureColor="onPureColorChange"
-                    @update:gradientColor="onGradientColorChange"
-                    @update:activeKey="val => activeKey = val"
-                  />
-                </div>
-              </div>
+              <TagColorPicker v-model="currentColor" />
             </div>
             <div class="flex justify-end space-x-2 pt-1">
               <button @click="editingTag = null" class="px-3 py-1 border border-gray-300 text-gray-600 rounded-md text-xs hover:bg-gray-100 transition cursor-pointer">取消</button>
@@ -75,12 +57,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import BaseModal from '../common/BaseModal.vue'
-import { ColorPicker } from 'vue3-colorpicker'
-import 'vue3-colorpicker/style.css'
-import { resolveTagBackground, colorToPickerState, pickerStateToColor } from '../../utils/tagColor'
+import TagColorPicker from '../common/TagColorPicker.vue'
+import { resolveTagBackground } from '../../utils/tagColor'
 
 const store = useArchiveStore()
 const apiFetch = store.apiFetch
@@ -88,19 +69,7 @@ const apiFetch = store.apiFetch
 const editingTag = ref(null)
 const editForm = ref({ name: '' })
 const isProcessing = ref(false)
-
-// ColorPicker 三状态
-const pureColor = ref('#3b82f6')
-const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
-const activeKey = ref('pure')
-
-// 实时预览色
-const currentPreviewColor = computed(() =>
-  pickerStateToColor(activeKey.value, pureColor.value, gradientColor.value)
-)
-
-const onPureColorChange = (val) => { pureColor.value = val }
-const onGradientColorChange = (val) => { gradientColor.value = val }
+const currentColor = ref('#3b82f6')
 
 const closeModal = () => {
   editingTag.value = null
@@ -110,17 +79,13 @@ const closeModal = () => {
 const startEdit = (tag) => {
   editingTag.value = tag.name
   editForm.value = { name: tag.name }
-  const state = colorToPickerState(tag.color)
-  pureColor.value = state.pureColor
-  gradientColor.value = state.gradientColor
-  activeKey.value = state.activeKey
+  // resolveTagBackground 兼容旧关键词，确保 currentColor 始终是合法的 CSS 颜色值
+  currentColor.value = resolveTagBackground(tag.color)
 }
 
 const saveTag = async (oldName) => {
   if (!editForm.value.name.trim()) return
   isProcessing.value = true
-
-  const finalColor = pickerStateToColor(activeKey.value, pureColor.value, gradientColor.value)
 
   try {
     const res = await apiFetch('/api/tags', {
@@ -128,7 +93,7 @@ const saveTag = async (oldName) => {
       body: JSON.stringify({
         old_tag: oldName,
         new_tag: editForm.value.name.trim(),
-        color: finalColor,
+        color: currentColor.value,
       })
     })
 

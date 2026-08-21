@@ -134,9 +134,10 @@
             </div>
           </div>
         </div>
-          <div class="flex items-center space-x-2 pt-1">
-            <ColorPicker v-model:pureColor="pureColor" v-model:gradientColor="gradientColor" v-model:activeKey="activeKey" shape="circle" format="hex" />
-          </div>
+        <div class="space-y-3">
+          <label class="text-xs text-gray-500">标签颜色</label>
+          <TagColorPicker v-model="tagColor" />
+        </div>
       </div>
 
       <div class="flex justify-end space-x-2 pt-4">
@@ -154,19 +155,17 @@
 </template>
 
 <script setup>
-import { ref, nextTick, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import AnswerActions from '../AnswerActions.vue'
 import AnswerComments from '../AnswerComments.vue'
 import BaseModal from '../common/BaseModal.vue'
 import RichEditor from '../RichEditor.vue'
 import DOMPurify from 'dompurify'
-import { ColorPicker } from 'vue3-colorpicker'
-import 'vue3-colorpicker/style.css'
-import { resolveTagBackground, resolveTagStyle, colorToPickerState, pickerStateToColor } from '../../utils/tagColor'
+import TagColorPicker from '../common/TagColorPicker.vue'
+import { resolveTagBackground, resolveTagStyle } from '../../utils/tagColor'
 
 const store = useArchiveStore()
-
 // ── 文章编辑 ──────────────────────────────────────────────────────────────────
 const isEditing = ref(false)
 const editTitle = ref('')
@@ -182,6 +181,7 @@ const autoResizeTitle = () => {
 }
 
 const enterEditMode = async () => {
+  const { nextTick } = await import('vue')
   editTitle.value = store.currentAnswer?.title || ''
   editContent.value = processHtmlContent(store.currentAnswer?.content_html)
   isEditing.value = true
@@ -223,57 +223,38 @@ const onCommentAdded = () => { commentRefreshKey.value++ }
 const isEditingTag = ref(false)
 const editTagValue = ref('')
 const showTagDropdown = ref(false)
-
-// ColorPicker 三状态
-const pureColor = ref('#3b82f6')
-const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
-const activeKey = ref('pure')
+const tagColor = ref('#3b82f6')
 
 const hideTagDropdown = () => { showTagDropdown.value = false }
 
-/** 点击下拉项：选中已有标签并同步颜色到 picker */
 const selectExistingTag = (t) => {
   editTagValue.value = t.name
-  const state = colorToPickerState(t.color)
-  pureColor.value = state.pureColor
-  gradientColor.value = state.gradientColor
-  activeKey.value = state.activeKey
+  tagColor.value = resolveTagBackground(t.color)
   showTagDropdown.value = false
 }
 
-/** 手动输入标签名：如果恰好匹配已有标签，自动同步颜色 */
 watch(editTagValue, (newVal) => {
   const existing = store.allTags.find(t => t.name === newVal)
-  if (existing) {
-    const state = colorToPickerState(existing.color)
-    pureColor.value = state.pureColor
-    gradientColor.value = state.gradientColor
-    activeKey.value = state.activeKey
-  }
+  if (existing) tagColor.value = resolveTagBackground(existing.color)
 })
 
-/** 点击标签文字 → 打开编辑弹窗 */
 const startEditTag = () => {
   editTagValue.value = store.currentAnswer?.tag || ''
-  const state = colorToPickerState(store.currentAnswer?.tag_color)
-  pureColor.value = state.pureColor
-  gradientColor.value = state.gradientColor
-  activeKey.value = state.activeKey
+  tagColor.value = resolveTagBackground(store.currentAnswer?.tag_color)
   isEditingTag.value = true
 }
 
 const saveTag = async () => {
   if (!store.currentAnswer) return
-  const finalColor = pickerStateToColor(activeKey.value, pureColor.value, gradientColor.value)
   try {
     const res = await store.apiFetch(`/api/answers/${store.currentAnswer.answer_id}/tag`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tag: editTagValue.value.trim(), color: finalColor })
+      body: JSON.stringify({ tag: editTagValue.value.trim(), color: tagColor.value })
     })
     if (!res.ok) throw new Error('标签更新失败')
     store.currentAnswer.tag = editTagValue.value.trim()
-    store.currentAnswer.tag_color = finalColor
+    store.currentAnswer.tag_color = tagColor.value
     isEditingTag.value = false
     store.fetchAnswersList()
   } catch (err) {

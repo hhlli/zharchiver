@@ -48,34 +48,10 @@
           </div>
         </div>
 
-        <!-- 颜色选择：实时预览圆点 + 调色盘弹出 -->
-        <div v-if="inputTag.trim()" class="flex items-center space-x-2 pt-0.5">
+        <!-- 颜色选择：仅在填写标签时出现 -->
+        <div v-if="inputTag.trim()" class="flex items-center space-x-2">
           <span class="text-xs text-gray-400 flex-shrink-0">标签颜色</span>
-          <div class="relative">
-            <div
-              class="w-4 h-4 rounded-full cursor-pointer border border-black/10 shadow-sm transition hover:scale-110"
-              :style="{ background: currentPreviewColor }"
-              @click="showColorPicker = !showColorPicker"
-              title="点击选择颜色"
-            ></div>
-            <div
-              v-if="showColorPicker"
-              class="absolute z-50 left-0 top-6 bg-white rounded-xl shadow-xl border border-gray-100 p-2"
-            >
-              <ColorPicker
-                isWidget
-                :pureColor="pureColor"
-                :gradientColor="gradientColor"
-                :activeKey="activeKey"
-                @update:pureColor="onPureColorChange"
-                @update:gradientColor="onGradientColorChange"
-                @update:activeKey="val => activeKey = val"
-              />
-              <div class="flex justify-end mt-1.5">
-                <button @click="showColorPicker = false" class="text-xs text-gray-500 hover:text-brand px-2 py-0.5 rounded cursor-pointer">完成</button>
-              </div>
-            </div>
-          </div>
+          <TagColorPicker v-model="tagColor" />
         </div>
       </div>
 
@@ -96,53 +72,31 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
-import { ColorPicker } from 'vue3-colorpicker'
-import 'vue3-colorpicker/style.css'
-import { resolveTagBackground, colorToPickerState, pickerStateToColor } from '../../utils/tagColor'
+import TagColorPicker from '../common/TagColorPicker.vue'
+import { resolveTagBackground } from '../../utils/tagColor'
 
 const store = useArchiveStore()
 
 const inputUrl = ref('')
 const inputTag = ref('')
+const tagColor = ref('#3b82f6')
 const loading = ref(false)
 const errorMsg = ref('')
 const showTagDropdown = ref(false)
-const showColorPicker = ref(false)
-
-// ColorPicker 三状态
-const pureColor = ref('#3b82f6')
-const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
-const activeKey = ref('pure')
-
-const currentPreviewColor = computed(() =>
-  pickerStateToColor(activeKey.value, pureColor.value, gradientColor.value)
-)
-
-const onPureColorChange = (val) => { pureColor.value = val }
-const onGradientColorChange = (val) => { gradientColor.value = val }
 
 const hideTagDropdown = () => { showTagDropdown.value = false }
 
 const selectExistingTag = (t) => {
   inputTag.value = t.name
-  const state = colorToPickerState(t.color)
-  pureColor.value = state.pureColor
-  gradientColor.value = state.gradientColor
-  activeKey.value = state.activeKey
+  tagColor.value = resolveTagBackground(t.color)
   showTagDropdown.value = false
 }
 
-// 手动输入标签名时，如果匹配已有标签，自动同步颜色
 watch(inputTag, (newVal) => {
   const existing = store.allTags.find(t => t.name === newVal)
-  if (existing) {
-    const state = colorToPickerState(existing.color)
-    pureColor.value = state.pureColor
-    gradientColor.value = state.gradientColor
-    activeKey.value = state.activeKey
-  }
+  if (existing) tagColor.value = resolveTagBackground(existing.color)
 })
 
 const submitArchive = async () => {
@@ -154,10 +108,6 @@ const submitArchive = async () => {
   loading.value = true
   errorMsg.value = ''
 
-  const finalColor = inputTag.value.trim()
-    ? pickerStateToColor(activeKey.value, pureColor.value, gradientColor.value)
-    : ''
-
   try {
     const res = await store.apiFetch(`${store.API_BASE}/api/archive`, {
       method: 'POST',
@@ -165,7 +115,7 @@ const submitArchive = async () => {
       body: JSON.stringify({
         url: inputUrl.value.trim(),
         tag: inputTag.value.trim(),
-        color: finalColor,
+        color: inputTag.value.trim() ? tagColor.value : '',
       })
     })
 
@@ -176,7 +126,6 @@ const submitArchive = async () => {
 
     inputUrl.value = ''
     inputTag.value = ''
-    showColorPicker.value = false
     store.showAddModal = false
     store.showToast('已加入后台解析任务，请留意页面底部进度条')
   } catch (err) {
