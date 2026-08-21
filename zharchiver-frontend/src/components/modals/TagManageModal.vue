@@ -14,7 +14,7 @@
           
           <div v-if="editingTag !== tag.name" class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: getTagHex(tag.color) }"></span>
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.1)]" :style="{ background: getTagBackground(tag.color) }"></span>
               <span class="text-sm text-gray-700">{{ tag.name }}</span>
             </div>
             <div class="flex items-center space-x-1">
@@ -37,11 +37,22 @@
               />
             </div>
             <div>
-              <label class="text-xs text-gray-500 block mb-1">标签颜色</label>
-              <div class="flex flex-wrap gap-2 pt-0.5 items-center">
-                <button v-for="(hex, c) in hexColors" :key="c" @click="editForm.color = c" :class="['w-3.5 h-3.5 rounded-full cursor-pointer transition flex-shrink-0', editForm.color === c ? 'ring-2 ring-offset-1 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
+              <label class="text-xs text-gray-500 block mb-1.5">纯色</label>
+              <div class="flex flex-wrap gap-2 items-center mb-3">
+                <button v-for="(hex, c) in hexColors" :key="c" @click="editForm.color = c" :class="['w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0 shadow-sm border border-black/5', editForm.color === c ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ background: hex }"></button>
                 <div class="w-px h-4 bg-gray-200 mx-1"></div>
-                <input type="color" :value="getTagHex(editForm.color)" @input="editForm.color = $event.target.value" class="w-5 h-5 rounded cursor-pointer border-0 p-0 bg-transparent" title="自定义颜色" />
+                <div class="relative w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0 shadow-sm border border-black/5"
+                     :class="[editForm.color.startsWith('#') && !Object.values(hexColors).includes(editForm.color) ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']"
+                     style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);"
+                     title="自定义纯色">
+                  <div v-if="editForm.color.startsWith('#') && !Object.values(hexColors).includes(editForm.color)" class="absolute inset-0 rounded-full" :style="{ background: editForm.color }"></div>
+                  <input type="color" :value="editForm.color.startsWith('#') ? editForm.color : '#ffffff'" @input="editForm.color = $event.target.value" class="absolute -inset-4 w-12 h-12 opacity-0 cursor-pointer" />
+                </div>
+              </div>
+
+              <label class="text-xs text-gray-500 block mb-1.5">渐变 (推荐)</label>
+              <div class="flex flex-wrap gap-2 items-center">
+                <button v-for="(grad, g) in gradients" :key="g" @click="editForm.color = g" :class="['w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0 shadow-sm border border-black/5', editForm.color === g ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ background: grad }"></button>
               </div>
             </div>
             <div class="flex justify-end space-x-2 pt-1">
@@ -84,10 +95,22 @@ const hexColors = {
   gray: '#6b7280'
 }
 
-const getTagHex = (colorVal) => {
+const gradients = {
+  sunset: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+  ocean: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+  purplegrad: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+  forest: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+  night: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+  warm: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+  cool: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+  emerald: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+  deep: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+}
+
+const getTagBackground = (colorVal) => {
   if (!colorVal) return hexColors.blue;
-  if (colorVal.startsWith('#')) return colorVal;
-  return hexColors[colorVal] || hexColors.blue;
+  if (colorVal.startsWith('#') || colorVal.startsWith('linear-gradient')) return colorVal;
+  return hexColors[colorVal] || gradients[colorVal] || hexColors.blue;
 }
 
 const editingTag = ref(null)
