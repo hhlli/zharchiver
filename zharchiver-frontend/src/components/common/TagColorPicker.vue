@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-2 relative">
+  <div class="space-y-3">
     <!-- 预设色点区域 -->
     <div class="flex items-center gap-2 flex-wrap">
       <!-- 7 个纯色 -->
@@ -40,8 +40,8 @@
       ></button>
     </div>
 
-    <!-- 自定义颜色设置面板 (绝对定位浮层) -->
-    <div v-if="showCustomPanel" class="absolute z-50 top-8 left-0 rounded-xl border border-gray-200 bg-white p-3 flex flex-col gap-3 shadow-xl w-64">
+    <!-- 自定义颜色设置面板 (内联向下展开，不再是悬浮遮挡) -->
+    <div v-if="showCustomPanel" class="rounded-xl border border-gray-200 bg-gray-50/80 p-3 flex flex-col gap-3 shadow-sm w-full">
       
       <!-- 模式切换 -->
       <div class="flex bg-gray-100 p-1 rounded-lg">
