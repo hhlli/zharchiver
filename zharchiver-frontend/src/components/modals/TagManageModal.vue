@@ -37,32 +37,12 @@
               />
             </div>
             <div>
-              <label class="text-xs text-gray-500 block mb-1.5">纯色</label>
-              <div class="flex flex-wrap gap-2 items-center mb-3">
-                <button v-for="(hex, c) in hexColors" :key="c" @click="editForm.color = c" :class="['w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0 shadow-sm border border-black/5', editForm.color === c ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ background: hex }"></button>
-                <div class="w-px h-4 bg-gray-200 mx-1"></div>
-                <div class="relative w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0 shadow-sm border border-black/5"
-                     :class="[editForm.color.startsWith('#') && !Object.values(hexColors).includes(editForm.color) ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']"
-                     style="background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);"
-                     title="自定义纯色">
-                  <div v-if="editForm.color.startsWith('#') && !Object.values(hexColors).includes(editForm.color)" class="absolute inset-0 rounded-full" :style="{ background: editForm.color }"></div>
-                  <input type="color" :value="editForm.color.startsWith('#') ? editForm.color : '#ffffff'" @input="editForm.color = $event.target.value" class="absolute -inset-4 w-12 h-12 opacity-0 cursor-pointer" />
-                </div>
-              </div>
-
-              <label class="text-xs text-gray-500 block mb-1.5">自定义渐变色</label>
-              <div class="flex items-center space-x-2">
-                <div class="relative w-6 h-6 rounded-md shadow-sm border border-black/10 flex-shrink-0" :style="{ background: gradientStart }">
-                  <input type="color" v-model="gradientStart" @change="updateCustomGradient" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                </div>
-                <span class="text-gray-300 text-xs">➔</span>
-                <div class="relative w-6 h-6 rounded-md shadow-sm border border-black/10 flex-shrink-0" :style="{ background: gradientEnd }">
-                  <input type="color" v-model="gradientEnd" @change="updateCustomGradient" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                </div>
-                <div class="ml-3 w-16 h-6 rounded-md shadow-sm border border-black/10" :style="{ background: `linear-gradient(135deg, ${gradientStart} 0%, ${gradientEnd} 100%)` }"></div>
+              <label class="text-xs text-gray-500 block mb-2">标签颜色</label>
+              <div class="flex justify-center bg-gray-50 rounded-lg p-2 border border-gray-100">
+                <ColorPicker isWidget v-model:pureColor="pureColor" v-model:gradientColor="gradientColor" v-model:activeKey="activeKey" />
               </div>
             </div>
-            <div class="flex justify-end space-x-2 pt-1">
+            <div class="flex justify-end space-x-2 pt-2">
               <button @click="editingTag = null" class="px-3 py-1 border border-gray-300 text-gray-600 rounded-md text-xs hover:bg-gray-100 transition cursor-pointer">
                 取消
               </button>
@@ -85,6 +65,8 @@
 import { ref } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import BaseModal from '../common/BaseModal.vue'
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
 
 const store = useArchiveStore()
 const apiFetch = store.apiFetch
@@ -116,20 +98,17 @@ const gradients = {
 
 const getTagBackground = (colorVal) => {
   if (!colorVal) return hexColors.blue;
-  if (colorVal.startsWith('#') || colorVal.startsWith('linear-gradient')) return colorVal;
-  return hexColors[colorVal] || gradients[colorVal] || hexColors.blue;
+  if (colorVal.startsWith('#') || colorVal.startsWith('linear-gradient') || colorVal.startsWith('rgb') || colorVal.startsWith('hsl')) return colorVal;
+  return hexColors[colorVal] || hexColors.blue;
 }
 
 const editingTag = ref(null)
-const editForm = ref({ name: '', color: 'blue' })
+const editForm = ref({ name: '' })
 const isProcessing = ref(false)
 
-const gradientStart = ref('#4facfe')
-const gradientEnd = ref('#00f2fe')
-
-const updateCustomGradient = () => {
-  editForm.value.color = `linear-gradient(135deg, ${gradientStart.value} 0%, ${gradientEnd.value} 100%)`
-}
+const pureColor = ref('#3b82f6')
+const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
+const activeKey = ref('pure') // 'pure' or 'gradient'
 
 const closeModal = () => {
   editingTag.value = null
@@ -138,17 +117,14 @@ const closeModal = () => {
 
 const startEdit = (tag) => {
   editingTag.value = tag.name
-  editForm.value = { name: tag.name, color: tag.color }
+  editForm.value = { name: tag.name }
   
   if (tag.color && tag.color.startsWith('linear-gradient')) {
-    const match = tag.color.match(/#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g)
-    if (match && match.length >= 2) {
-      gradientStart.value = match[0]
-      gradientEnd.value = match[1]
-    }
+    gradientColor.value = tag.color
+    activeKey.value = 'gradient'
   } else {
-    gradientStart.value = '#4facfe'
-    gradientEnd.value = '#00f2fe'
+    pureColor.value = tag.color && tag.color.startsWith('#') ? tag.color : (hexColors[tag.color] || '#3b82f6')
+    activeKey.value = 'pure'
   }
 }
 
@@ -156,13 +132,15 @@ const saveTag = async (oldName) => {
   if (!editForm.value.name.trim()) return
   isProcessing.value = true
   
+  const finalColor = activeKey.value === 'gradient' ? gradientColor.value : pureColor.value
+  
   try {
     const res = await apiFetch('/api/tags', {
       method: 'PUT',
       body: JSON.stringify({
         old_tag: oldName,
         new_tag: editForm.value.name.trim(),
-        color: editForm.value.color
+        color: finalColor
       })
     })
 
