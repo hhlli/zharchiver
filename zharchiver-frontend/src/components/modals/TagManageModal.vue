@@ -14,7 +14,7 @@
           
           <div v-if="editingTag !== tag.name" class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: hexColors[tag.color] || hexColors.blue }"></span>
+              <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" :style="{ backgroundColor: getTagHex(tag.color) }"></span>
               <span class="text-sm text-gray-700">{{ tag.name }}</span>
             </div>
             <div class="flex items-center space-x-1">
@@ -38,8 +38,10 @@
             </div>
             <div>
               <label class="text-xs text-gray-500 block mb-1">标签颜色</label>
-              <div class="flex flex-wrap gap-2 pt-0.5">
+              <div class="flex flex-wrap gap-2 pt-0.5 items-center">
                 <button v-for="(hex, c) in hexColors" :key="c" @click="editForm.color = c" :class="['w-3.5 h-3.5 rounded-full cursor-pointer transition flex-shrink-0', editForm.color === c ? 'ring-2 ring-offset-1 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
+                <div class="w-px h-4 bg-gray-200 mx-1"></div>
+                <input type="color" :value="getTagHex(editForm.color)" @input="editForm.color = $event.target.value" class="w-5 h-5 rounded cursor-pointer border-0 p-0 bg-transparent" title="自定义颜色" />
               </div>
             </div>
             <div class="flex justify-end space-x-2 pt-1">
@@ -80,6 +82,12 @@ const hexColors = {
   teal: '#14b8a6',
   cyan: '#06b6d4',
   gray: '#6b7280'
+}
+
+const getTagHex = (colorVal) => {
+  if (!colorVal) return hexColors.blue;
+  if (colorVal.startsWith('#')) return colorVal;
+  return hexColors[colorVal] || hexColors.blue;
 }
 
 const editingTag = ref(null)

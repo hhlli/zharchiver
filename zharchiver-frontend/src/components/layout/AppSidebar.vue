@@ -122,6 +122,9 @@ const openSettings = () => {
 }
 
 const getHexColor = (colorKey) => {
+  if (!colorKey) return '#3b82f6';
+  if (colorKey.startsWith('#')) return colorKey;
+
   const hexColors = {
     blue: '#3b82f6', red: '#ef4444', green: '#10b981', yellow: '#f59e0b',
     purple: '#8b5cf6', pink: '#ec4899', indigo: '#6366f1', teal: '#14b8a6',
