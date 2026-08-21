@@ -128,18 +128,15 @@
                 @mousedown.prevent="selectExistingTag(t)"
                 class="px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 cursor-pointer flex items-center space-x-2"
               >
-                <span class="w-2 h-2 rounded-full flex-shrink-0" :style="{ backgroundColor: hexColors[t.color] || hexColors.blue }"></span>
+                <span class="w-2 h-2 rounded-full flex-shrink-0 shadow-[0_0_2px_rgba(0,0,0,0.1)]" :style="{ background: getTagBackground(t.color) }"></span>
                 <span class="truncate">{{ t.name }}</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="space-y-3">
-          <label class="text-xs text-gray-500">标签颜色</label>
-          <div class="flex flex-wrap gap-2 pt-1">
-            <button v-for="(hex, c) in hexColors" :key="c" @click="editTagColor = c" :class="['w-4 h-4 rounded-full cursor-pointer transition flex-shrink-0', editTagColor === c ? 'ring-2 ring-offset-2 ring-blue-400 scale-110' : 'hover:scale-110']" :style="{ backgroundColor: hex }"></button>
+          <div class="flex items-center space-x-2 pt-1">
+            <ColorPicker v-model:pureColor="pureColor" v-model:gradientColor="gradientColor" v-model:activeKey="activeKey" shape="circle" format="hex" />
           </div>
-        </div>
       </div>
 
       <div class="flex justify-end space-x-2 pt-4">
@@ -164,8 +161,14 @@ import AnswerComments from '../AnswerComments.vue'
 import BaseModal from '../common/BaseModal.vue'
 import RichEditor from '../RichEditor.vue'
 import DOMPurify from 'dompurify'
+import { ColorPicker } from 'vue3-colorpicker'
+import 'vue3-colorpicker/style.css'
 
 const store = useArchiveStore()
+
+const pureColor = ref('#3b82f6')
+const gradientColor = ref('linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)')
+const activeKey = ref('pure')
 
 const isEditing = ref(false)
 const editTitle = ref('')
@@ -230,7 +233,6 @@ const onCommentAdded = () => {
 
 const isEditingTag = ref(false)
 const editTagValue = ref('')
-const editTagColor = ref('blue')
 const showTagDropdown = ref(false)
 
 const hideTagDropdown = () => {
@@ -239,14 +241,26 @@ const hideTagDropdown = () => {
 
 const selectExistingTag = (t) => {
   editTagValue.value = t.name
-  editTagColor.value = t.color
+  if (t.color && t.color.startsWith('linear-gradient')) {
+    gradientColor.value = t.color
+    activeKey.value = 'gradient'
+  } else {
+    pureColor.value = t.color && t.color.startsWith('#') ? t.color : (hexColors[t.color] || '#3b82f6')
+    activeKey.value = 'pure'
+  }
   showTagDropdown.value = false
 }
 
 watch(editTagValue, (newVal) => {
   const existing = store.allTags.find(t => t.name === newVal)
   if (existing) {
-    editTagColor.value = existing.color
+    if (existing.color && existing.color.startsWith('linear-gradient')) {
+      gradientColor.value = existing.color
+      activeKey.value = 'gradient'
+    } else {
+      pureColor.value = existing.color && existing.color.startsWith('#') ? existing.color : (hexColors[existing.color] || '#3b82f6')
+      activeKey.value = 'pure'
+    }
   }
 })
 
@@ -264,35 +278,66 @@ const hexColors = {
   slate: '#64748b'
 }
 
+const getTagBackground = (colorVal) => {
+  if (!colorVal) return hexColors.blue;
+  if (colorVal.startsWith('#') || colorVal.startsWith('linear-gradient') || colorVal.startsWith('rgb') || colorVal.startsWith('hsl')) return colorVal;
+  return hexColors[colorVal] || hexColors.blue;
+}
+
 const getTagStyle = (colorKey) => {
-  const hex = hexColors[colorKey] || hexColors.blue;
+  const hex = hexColors[colorKey] || (colorKey && colorKey.startsWith('#') ? colorKey : null);
+  if (hex) {
+    return {
+      backgroundColor: hex + '1A',
+      color: hex,
+      borderColor: hex + '33'
+    }
+  }
+  // 如果是渐变色或其他，我们使用透明底色，文字使用渐变色（通过 -webkit-background-clip）或直接用品牌蓝作为后备
+  if (colorKey && colorKey.startsWith('linear-gradient')) {
+    return {
+      background: colorKey,
+      color: 'white',
+      borderColor: 'transparent'
+    }
+  }
   return {
-    backgroundColor: hex + '1A',
-    color: hex,
-    borderColor: hex + '33'
+    backgroundColor: '#3b82f61A',
+    color: '#3b82f6',
+    borderColor: '#3b82f633'
   }
 }
 
 const startEditTag = () => {
   editTagValue.value = store.currentAnswer?.tag || ''
-  editTagColor.value = store.currentAnswer?.tag_color || 'blue'
+  const color = store.currentAnswer?.tag_color || 'blue'
+  
+  if (color && color.startsWith('linear-gradient')) {
+    gradientColor.value = color
+    activeKey.value = 'gradient'
+  } else {
+    pureColor.value = color && color.startsWith('#') ? color : (hexColors[color] || '#3b82f6')
+    activeKey.value = 'pure'
+  }
   isEditingTag.value = true
 }
 
 const saveTag = async () => {
   if (!store.currentAnswer) return
 
+  const finalColor = activeKey.value === 'gradient' ? gradientColor.value : pureColor.value
+
   try {
     const res = await store.apiFetch(`/api/answers/${store.currentAnswer.answer_id}/tag`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tag: editTagValue.value.trim(), color: editTagColor.value })
+      body: JSON.stringify({ tag: editTagValue.value.trim(), color: finalColor })
     })
     if (!res.ok) throw new Error("标签更新失败")
     
     // 乐观更新
     store.currentAnswer.tag = editTagValue.value.trim()
-    store.currentAnswer.tag_color = editTagColor.value
+    store.currentAnswer.tag_color = finalColor
     isEditingTag.value = false
     store.fetchAnswersList()
   } catch (err) {
