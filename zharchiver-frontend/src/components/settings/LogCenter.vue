@@ -2,9 +2,9 @@
   <div class="h-full flex flex-col pt-4 pb-8 px-4 md:px-8 max-w-6xl mx-auto">
     <!-- 顶部控制栏 -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 flex-shrink-0 space-y-3 sm:space-y-0">
-      <h2 class="text-xl md:text-2xl font-semibold text-gray-800">日志中心</h2>
+      <h2 class="text-xl md:text-2xl font-semibold text-primary">日志中心</h2>
       <div class="flex space-x-3 w-full sm:w-auto">
-        <select v-model="levelFilter" class="flex-1 sm:flex-none border border-gray-300 bg-white rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
+        <select v-model="levelFilter" class="flex-1 sm:flex-none border border-line bg-surface rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500">
           <option value="ALL">全部日志</option>
           <option value="INFO">INFO</option>
           <option value="WARN">WARN</option>
@@ -17,12 +17,12 @@
     </div>
 
     <!-- 日志输出终端 -->
-    <div class="flex-1 bg-white rounded-xl shadow-sm overflow-hidden flex flex-col border border-gray-200">
+    <div class="flex-1 bg-surface rounded-xl shadow-sm overflow-hidden flex flex-col border border-line">
       <div class="flex-1 overflow-y-auto p-4 font-mono text-[12px] leading-relaxed select-text" ref="logContainer">
-        <div v-for="(log, index) in filteredLogs" :key="index" class="mb-1 flex space-x-3 hover:bg-gray-50 px-2 py-0.5 rounded transition-colors">
+        <div v-for="(log, index) in filteredLogs" :key="index" class="mb-1 flex space-x-3 hover:bg-surface-hover px-2 py-0.5 rounded transition-colors">
           <span class="text-gray-400 flex-shrink-0 w-20">{{ log.time }}</span>
           <span :class="levelColor(log.level)" class="flex-shrink-0 w-12 font-semibold">{{ log.level }}</span>
-          <span class="text-gray-700 break-all whitespace-pre-wrap">{{ log.message }}</span>
+          <span class="text-secondary break-all whitespace-pre-wrap">{{ log.message }}</span>
         </div>
         <div v-if="filteredLogs.length === 0" class="text-gray-400 text-center mt-10">等待接收日志数据...</div>
       </div>
@@ -54,7 +54,7 @@ const levelColor = (level) => {
     case 'INFO': return 'text-brand'
     case 'WARN': return 'text-yellow-600'
     case 'ERROR': return 'text-red-600'
-    default: return 'text-gray-500'
+    default: return 'text-muted'
   }
 }
 

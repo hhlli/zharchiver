@@ -1,11 +1,11 @@
 <template>
   <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
-    <h2 class="text-2xl font-semibold text-gray-800 mb-8">平台鉴权</h2>
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+    <h2 class="text-2xl font-semibold text-primary mb-8">平台鉴权</h2>
+    <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
         <div class="flex-col pr-0 sm:pr-4">
           <div class="flex items-center gap-3">
-            <span class="block text-sm font-medium text-gray-700">知乎账号授权</span>
+            <span class="block text-sm font-medium text-secondary">知乎账号授权</span>
             <span v-if="isZhihuConfigured" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
               已鉴权
             </span>
@@ -26,12 +26,12 @@
       <div class="p-6 flex flex-col items-center justify-center min-h-[250px]">
         <div v-if="wsStatus === 'loading' || wsStatus === 'connecting'" class="flex flex-col items-center">
           <div class="w-8 h-8 border-4 border-blue-200 border-t-brand rounded-full animate-spin mb-4"></div>
-          <p class="text-sm text-gray-600">{{ wsMessage || '正在连接安全环境...' }}</p>
+          <p class="text-sm text-secondary">{{ wsMessage || '正在连接安全环境...' }}</p>
         </div>
         
         <div v-else-if="wsStatus === 'qrcode' || wsStatus === 'waiting'" class="flex flex-col items-center">
-          <img :src="qrImage" alt="Zhihu QR Code" class="w-48 h-48 border border-gray-200 rounded-lg shadow-sm mb-4" />
-          <p class="text-sm font-medium text-gray-800">{{ wsMessage }}</p>
+          <img :src="qrImage" alt="Zhihu QR Code" class="w-48 h-48 border border-line rounded-lg shadow-sm mb-4" />
+          <p class="text-sm font-medium text-primary">{{ wsMessage }}</p>
           <p class="text-xs text-gray-400 mt-2">请使用知乎 App 扫描上方二维码</p>
         </div>
 
@@ -39,7 +39,7 @@
           <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
           </div>
-          <p class="text-sm font-medium text-gray-800">{{ wsMessage }}</p>
+          <p class="text-sm font-medium text-primary">{{ wsMessage }}</p>
         </div>
 
         <div v-else-if="wsStatus === 'error'" class="flex flex-col items-center">

@@ -5,7 +5,7 @@
         class="absolute inset-0 bg-black/40 backdrop-blur-sm" 
         @click="closeOnOutside ? $emit('close') : null"
       ></div>
-      <div :class="['relative bg-white rounded-2xl shadow-2xl w-full', maxWidthClass, contentClass]">
+      <div :class="['relative bg-surface rounded-2xl shadow-2xl w-full', maxWidthClass, contentClass]">
         <slot></slot>
       </div>
     </div>

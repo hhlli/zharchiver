@@ -1,17 +1,17 @@
 <template>
   <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
-    <h2 class="text-2xl font-semibold text-gray-800 mb-8">数据管理</h2>
+    <h2 class="text-2xl font-semibold text-primary mb-8">数据管理</h2>
     
     <div class="space-y-6">
       <!-- 备份与恢复 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50">
-          <h3 class="text-sm font-semibold text-gray-700">本地备份与恢复</h3>
+      <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
+        <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50">
+          <h3 class="text-sm font-semibold text-secondary">本地备份与恢复</h3>
         </div>
-        <div class="divide-y divide-gray-100">
+        <div class="divide-y divide-line-light">
           <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
             <div class="flex-col pr-0 sm:pr-4">
-              <span class="block text-sm font-medium text-gray-700">导出完整备份</span>
+              <span class="block text-sm font-medium text-secondary">导出完整备份</span>
               <span class="block text-xs text-gray-400 mt-1">将数据库和所有本地图片打包为 ZIP 下载到本地，确保数据安全。</span>
             </div>
             <BaseButton variant="soft" @click="downloadBackup">
@@ -20,7 +20,7 @@
           </div>
           <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
             <div class="flex-col pr-0 sm:pr-4">
-              <span class="block text-sm font-medium text-gray-700">从备份恢复</span>
+              <span class="block text-sm font-medium text-secondary">从备份恢复</span>
               <span class="block text-xs text-red-500 mt-1">上传 ZIP 备份包进行恢复。警告：此操作将覆盖当前所有数据！</span>
             </div>
             <div class="relative flex-shrink-0 w-full sm:w-auto">
@@ -40,20 +40,20 @@
       </div>
 
       <!-- Telegram 云备份 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-          <h3 class="text-sm font-semibold text-gray-700">Telegram 自动备份</h3>
+      <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
+        <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+          <h3 class="text-sm font-semibold text-secondary">Telegram 自动备份</h3>
           <span class="text-xs text-gray-400">每天自动将备份文件发送至您的 Bot 对话</span>
         </div>
         <div class="p-4 md:p-5 space-y-4">
           <div class="flex items-center justify-between h-8">
             <div class="flex items-center space-x-3">
-              <label class="block text-sm font-medium text-gray-700">自动备份时间</label>
+              <label class="block text-sm font-medium text-secondary">自动备份时间</label>
               <select 
                 v-if="tgConfig.telegram_backup_enabled" 
                 v-model="tgConfig.telegram_backup_time" 
                 @change="saveTgConfig"
-                class="border border-gray-300 text-gray-600 rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
+                class="border border-line text-secondary rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
               >
                 <option v-for="h in 24" :key="h" :value="String(h-1).padStart(2, '0') + ':00'">{{ String(h-1).padStart(2, '0') }}:00</option>
               </select>
@@ -70,7 +70,7 @@
             <div class="flex items-center space-x-3">
               <div 
                 @click="toggleBackup"
-                :class="['w-11 h-6 rounded-full cursor-pointer transition-colors relative flex-shrink-0', tgConfig.telegram_backup_enabled ? 'bg-brand' : 'bg-gray-300']"
+                :class="['w-11 h-6 rounded-full cursor-pointer transition-colors relative flex-shrink-0', tgConfig.telegram_backup_enabled ? 'bg-brand' : 'bg-line']"
               >
                 <div :class="['w-5 h-5 bg-white rounded-full absolute top-0.5 shadow transition-transform', tgConfig.telegram_backup_enabled ? 'translate-x-5.5' : 'translate-x-0.5']"></div>
               </div>
@@ -80,10 +80,10 @@
       </div>
 
       <!-- 其他 -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm divide-y divide-gray-100">
+      <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm divide-y divide-line-light">
         <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
           <div class="flex-col">
-            <span class="block text-sm font-medium text-gray-700">清理本地图片</span>
+            <span class="block text-sm font-medium text-secondary">清理本地图片</span>
             <span class="block text-xs text-gray-400 mt-1">扫描并删除已移除归档遗留的孤立图片文件，释放磁盘空间。</span>
           </div>
           <BaseButton variant="outline">
@@ -92,7 +92,7 @@
         </div>
         <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
           <div class="flex-col">
-            <span class="block text-sm font-medium text-gray-700">重建数据库索引</span>
+            <span class="block text-sm font-medium text-secondary">重建数据库索引</span>
             <span class="block text-xs text-gray-400 mt-1">重新生成 SQLite 虚拟表索引，优化检索性能。</span>
           </div>
           <BaseButton variant="outline">
@@ -102,19 +102,19 @@
       </div>
     </div>
     <!-- 媒体库浏览 -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mt-6">
-      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-        <h3 class="text-sm font-semibold text-gray-700">视图数据浏览</h3>
+    <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm mt-6">
+      <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+        <h3 class="text-sm font-semibold text-secondary">视图数据浏览</h3>
         <span class="text-xs text-gray-400">集中浏览本地所有图文、视频资源</span>
       </div>
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
         <div class="flex flex-col pr-0 sm:pr-4">
-          <span class="text-sm font-medium text-gray-700">媒体库</span>
+          <span class="text-sm font-medium text-secondary">媒体库</span>
           <span class="text-xs text-gray-400 mt-1">查看按照归档顺序（由新到旧）排列的所有图片和视频，便于快速检索和全屏播放。</span>
         </div>
         <button 
           @click="showMediaViewer = true"
-          class="flex items-center justify-center space-x-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-brand rounded-lg text-sm font-medium transition-colors w-full sm:w-auto flex-shrink-0"
+          class="flex items-center justify-center space-x-1.5 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-brand dark:text-blue-400 rounded-lg text-sm font-medium transition-colors w-full sm:w-auto flex-shrink-0"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           <span>打开媒体库</span>

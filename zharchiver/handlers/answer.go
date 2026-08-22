@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -24,6 +25,7 @@ func (env *HandlerEnv) handleGetAnswers(w http.ResponseWriter, r *http.Request) 
 	limit := 50
 	tag := r.URL.Query().Get("tag")
 	search := r.URL.Query().Get("search")
+	isFavorite := r.URL.Query().Get("is_favorite") == "true"
 
 	if p := r.URL.Query().Get("page"); p != "" {
 		if v, err := strconv.Atoi(p); err == nil {
@@ -36,7 +38,7 @@ func (env *HandlerEnv) handleGetAnswers(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	result, err := models.GetAnswersPaginated(env.db, page, limit, tag, search)
+	result, err := models.GetAnswersPaginated(env.db, page, limit, tag, search, isFavorite)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -186,6 +188,32 @@ func (env *HandlerEnv) handleGetAllTags(w http.ResponseWriter, r *http.Request) 
 	if tags == nil {
 		tags = []TagItem{}
 	}
+
+	orderStr := models.GetSetting(env.db, "tag_sort_order")
+	if orderStr != "" {
+		var sortOrder []string
+		if err := json.Unmarshal([]byte(orderStr), &sortOrder); err == nil {
+			orderMap := make(map[string]int)
+			for i, name := range sortOrder {
+				orderMap[name] = i
+			}
+			sort.SliceStable(tags, func(i, j int) bool {
+				idxI, okI := orderMap[tags[i].Name]
+				idxJ, okJ := orderMap[tags[j].Name]
+				if okI && okJ {
+					return idxI < idxJ
+				}
+				if okI {
+					return true
+				}
+				if okJ {
+					return false
+				}
+				return tags[i].Name < tags[j].Name
+			})
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tags)
 }

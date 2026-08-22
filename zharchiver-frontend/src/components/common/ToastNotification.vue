@@ -2,7 +2,7 @@
   <Transition name="toast">
     <div 
       v-if="store.toastVisible" 
-      class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 flex items-center px-4 py-2.5 bg-white border border-gray-100 rounded-lg shadow-sm font-medium text-sm text-gray-700 space-x-2"
+      class="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 flex items-center px-4 py-2.5 bg-surface border border-line-light rounded-lg shadow-sm font-medium text-sm text-secondary space-x-2"
     >
       <!-- Success Icon -->
       <svg v-if="store.toastType === 'success'" class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

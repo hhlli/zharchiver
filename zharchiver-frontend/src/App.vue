@@ -1,5 +1,5 @@
 <template>
-  <div class="h-[100dvh] w-full bg-white flex flex-col font-sans antialiased select-none overflow-hidden">
+  <div class="h-[100dvh] w-full bg-surface flex flex-col font-sans antialiased select-none overflow-hidden">
     
     <div class="sticky md:static top-0 z-40">
       <AppHeader />
@@ -14,17 +14,17 @@
       <!-- 迷你侧边栏 (仅展开按钮) -->
       <div 
         v-if="!store.isDesktopSidebarOpen" 
-        class="hidden md:flex flex-col justify-end border-r border-gray-200 bg-[#f5f5f7] flex-shrink-0 h-full z-30"
+        class="hidden md:flex flex-col justify-end border-r border-line bg-main flex-shrink-0 h-full z-30"
       >
         <div class="p-3">
-          <button @click="store.isDesktopSidebarOpen = true" class="p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition cursor-pointer flex items-center justify-center" title="展开边栏">
+          <button @click="store.isDesktopSidebarOpen = true" class="p-1 rounded text-gray-400 hover:text-secondary hover:bg-line transition cursor-pointer flex items-center justify-center" title="展开边栏">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 19l7-7-7-7M5 19l7-7-7-7"></path></svg>
           </button>
         </div>
       </div>
 
       <!-- 右侧主内容展示区 -->
-      <main class="flex-1 bg-gray-50/30 md:bg-white relative flex flex-col min-w-0 h-full">
+      <main class="flex-1 bg-surface-hover/30 md:bg-surface relative flex flex-col min-w-0 h-full">
         
         <div id="main-scroll-container" class="flex-1 p-4 md:p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-6 select-text overflow-y-auto">
         <!-- 删除确认弹窗 -->
@@ -52,7 +52,7 @@
     </div>
 
     <!-- 底部状态栏 (PC) -->
-    <footer class="hidden md:flex h-8 bg-[#f5f5f7] border-t border-gray-200 items-center justify-between px-6 flex-shrink-0 text-[11px] text-gray-500">
+    <footer class="hidden md:flex h-8 bg-main border-t border-line items-center justify-between px-6 flex-shrink-0 text-[11px] text-muted">
       <span>知乎内容本地归档库</span>
       <span>已归档 {{ store.totalCount }} 个项目</span>
     </footer>
@@ -76,8 +76,8 @@
       maxWidthClass="max-w-lg"
     >
       <div class="p-6">
-        <h3 class="text-lg font-medium text-gray-900 mb-3">{{ store.globalAlertTitle }}</h3>
-        <div class="text-sm text-gray-600 whitespace-pre-wrap max-h-[60vh] overflow-y-auto bg-gray-50 p-3 rounded-lg border border-gray-100 font-mono">{{ store.globalAlertMessage }}</div>
+        <h3 class="text-lg font-medium text-primary mb-3">{{ store.globalAlertTitle }}</h3>
+        <div class="text-sm text-secondary whitespace-pre-wrap max-h-[60vh] overflow-y-auto bg-surface-hover p-3 rounded-lg border border-line-light font-mono">{{ store.globalAlertMessage }}</div>
         <div class="mt-6 flex justify-end">
           <BaseButton variant="primary" @click="store.showGlobalAlert = false">
             确定

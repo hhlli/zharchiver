@@ -33,7 +33,7 @@
             v-for="group in gridRows[virtualRow.index]"
             :key="group.groupKey"
             @click="handleGroupClick(group)"
-            :class="['group bg-white border border-gray-200/80 rounded-xl px-4 pt-3 pb-1 hover:shadow-md transition cursor-pointer flex flex-col justify-between h-full relative overflow-hidden gap-2', isTwitter(group) ? 'hover:border-black' : 'hover:border-blue-400']"
+            :class="['group bg-surface border border-line/80 rounded-xl px-4 pt-3 pb-1 hover:shadow-md transition cursor-pointer flex flex-col justify-between h-full relative overflow-hidden gap-2', isTwitter(group) ? 'hover:border-primary' : 'hover:border-blue-400']"
           >
             <div class="space-y-1 flex-1">
               <div class="flex items-center justify-between w-full">
@@ -44,7 +44,7 @@
                 <div class="flex items-center space-x-1 -mr-1">
                   <button
                     @click.stop="store.toggleFavorite(group.count === 1 ? group.answers[0] : group, group.count > 1)"
-                    :class="['transition cursor-pointer p-1 rounded-full hover:bg-gray-50', (group.count === 1 ? group.answers[0].is_favorite : group.answers[0].is_favorite) ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-300 hover:text-gray-400']"
+                    :class="['transition cursor-pointer p-1 rounded-full hover:bg-surface-hover', (group.count === 1 ? group.answers[0].is_favorite : group.answers[0].is_favorite) ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-300 hover:text-gray-400']"
                     title="收藏/取消收藏"
                   >
                     <svg class="w-4 h-4" :fill="(group.count === 1 ? group.answers[0].is_favorite : group.answers[0].is_favorite) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,18 +53,18 @@
                   </button>
                   <button
                     @click.stop="store.itemToDelete = group.count === 1 ? group.answers[0] : group; store.itemToDeleteType = group.count === 1 ? 'answer' : 'group'"
-                    class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50"
+                    class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
                     title="删除归档"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
               </div>
-              <h3 :class="['font-medium text-gray-800 text-sm line-clamp-3 transition leading-snug h-[56px]', isTwitter(group) ? 'group-hover:text-gray-900' : 'group-hover:text-brand']">
+              <h3 :class="['font-medium text-primary text-sm line-clamp-3 transition leading-snug h-[56px]', isTwitter(group) ? 'group-hover:text-primary' : 'group-hover:text-brand']">
                 {{ group.title || '（无标题）' }}
               </h3>
             </div>
-            <div class="mt-auto pt-1 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+            <div class="mt-auto pt-1 border-t border-line-light flex items-center justify-between text-[11px] text-gray-400">
               <span v-if="group.count > 1" class="inline-flex items-center space-x-1">
                 <span class="w-3.5 h-3.5 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">{{ group.count }}</span>
               </span>
@@ -77,7 +77,7 @@
 
       <!-- 列表视图 (List) -->
       <template v-else>
-        <div class="w-full absolute top-0 left-0 bg-white border border-gray-200/80 rounded-xl overflow-hidden" :style="{ height: `${virtualizer.getTotalSize()}px` }">
+        <div class="w-full absolute top-0 left-0 bg-surface border border-line/80 rounded-xl overflow-hidden" :style="{ height: `${virtualizer.getTotalSize()}px` }">
           <div
             v-for="virtualRow in virtualizer.getVirtualItems()"
             :key="virtualRow.key"
@@ -91,12 +91,12 @@
               transform: `translateY(${virtualRow.start}px)`
             }"
             @click="handleGroupClick(store.groupedAnswers[virtualRow.index])"
-            :class="['px-3 sm:px-4 py-3 transition cursor-pointer flex items-center justify-between group border-b border-gray-100 last:border-b-0', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'hover:bg-gray-100' : 'hover:bg-blue-50/50']"
+            :class="['px-3 sm:px-4 py-3 transition cursor-pointer flex items-center justify-between group border-b border-line-light last:border-b-0', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'hover:bg-surface-hover' : 'hover:bg-blue-50 dark:hover:bg-blue-900/30/50 dark:hover:bg-blue-900/20']"
           >
             <div class="flex items-center space-x-3 pr-2 sm:pr-4 flex-1 overflow-hidden">
               <PlatformIcon :questionId="store.groupedAnswers[virtualRow.index].answers[0].question_id" svgClass="w-4 h-4 hidden sm:block grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all" />
               <div class="flex flex-col flex-1 overflow-hidden">
-                <span :class="['text-sm font-medium text-gray-800 line-clamp-2 sm:truncate sm:mb-0 mb-1', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'group-hover:text-gray-900' : 'group-hover:text-brand']">
+                <span :class="['text-sm font-medium text-primary line-clamp-2 sm:truncate sm:mb-0 mb-1', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'group-hover:text-primary' : 'group-hover:text-brand']">
                   {{ store.groupedAnswers[virtualRow.index].title || '（无标题）' }}
                 </span>
                 <div class="flex sm:hidden items-center text-xs text-gray-400">
@@ -107,7 +107,7 @@
               <div class="flex items-center space-x-2 sm:space-x-4 ml-2 sm:ml-6 -mr-1">
                 <button
                   @click.stop="store.toggleFavorite(store.groupedAnswers[virtualRow.index].count === 1 ? store.groupedAnswers[virtualRow.index].answers[0] : store.groupedAnswers[virtualRow.index], store.groupedAnswers[virtualRow.index].count > 1)"
-                  :class="['transition cursor-pointer p-1 rounded-full hover:bg-gray-50', (store.groupedAnswers[virtualRow.index].count === 1 ? store.groupedAnswers[virtualRow.index].answers[0].is_favorite : store.groupedAnswers[virtualRow.index].answers[0].is_favorite) ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-300 hover:text-gray-400']"
+                  :class="['transition cursor-pointer p-1 rounded-full hover:bg-surface-hover', (store.groupedAnswers[virtualRow.index].count === 1 ? store.groupedAnswers[virtualRow.index].answers[0].is_favorite : store.groupedAnswers[virtualRow.index].answers[0].is_favorite) ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-300 hover:text-gray-400']"
                   title="收藏/取消收藏"
                 >
                   <svg class="w-4 h-4" :fill="(store.groupedAnswers[virtualRow.index].count === 1 ? store.groupedAnswers[virtualRow.index].answers[0].is_favorite : store.groupedAnswers[virtualRow.index].answers[0].is_favorite) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +116,7 @@
                 </button>
                 <button
                   @click.stop="store.itemToDelete = store.groupedAnswers[virtualRow.index].count === 1 ? store.groupedAnswers[virtualRow.index].answers[0] : store.groupedAnswers[virtualRow.index]; store.itemToDeleteType = store.groupedAnswers[virtualRow.index].count === 1 ? 'answer' : 'group'"
-                  class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50"
+                  class="text-gray-300 hover:text-red-500 transition cursor-pointer p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
                   title="删除归档"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>

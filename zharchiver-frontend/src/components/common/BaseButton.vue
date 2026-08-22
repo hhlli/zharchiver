@@ -12,7 +12,7 @@
     <svg 
       v-if="loading" 
       class="animate-spin -ml-1 mr-2 h-4 w-4" 
-      :class="variant === 'outline' ? 'text-gray-500' : 'text-current'" 
+      :class="variant === 'outline' ? 'text-muted' : 'text-current'" 
       fill="none" 
       viewBox="0 0 24 24"
     >
@@ -54,10 +54,10 @@ defineEmits(['click'])
 
 const variantClasses = {
   'primary': 'bg-brand hover:bg-brand-hover text-white',
-  'secondary': 'bg-gray-800 hover:bg-gray-900 text-white',
+  'secondary': 'bg-surface-hover hover:bg-line text-primary',
   'danger': 'bg-red-600 hover:bg-red-700 text-white',
-  'outline': 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300',
-  'soft': 'bg-blue-50 hover:bg-blue-100 text-brand-hover border-transparent',
-  'danger-soft': 'bg-red-50 hover:bg-red-100 text-red-700 border-transparent'
+  'outline': 'bg-surface hover:bg-surface-hover text-secondary border border-line',
+  'soft': 'bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-brand-hover dark:text-blue-400 border-transparent',
+  'danger-soft': 'bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 border-transparent'
 }
 </script>

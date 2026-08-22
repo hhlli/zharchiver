@@ -1,29 +1,20 @@
 <template>
-  <div class="flex items-center space-x-3 ml-4 border-l pl-4 border-gray-200">
+  <div class="flex items-center space-x-3 ml-4 border-l pl-4 border-line">
     <!-- 编辑按钮 -->
     <button 
       @click="$emit('edit')"
-      class="text-xs text-gray-500 hover:text-brand transition flex items-center space-x-1 cursor-pointer"
+      class="text-xs text-muted hover:text-brand transition flex items-center space-x-1 cursor-pointer"
       title="编辑当前回答"
     >
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
       <span>编辑</span>
     </button>
 
-    <!-- 添加评论按钮 -->
-    <button 
-      @click="showModal = true"
-      class="text-xs text-gray-500 hover:text-green-600 transition flex items-center space-x-1 cursor-pointer"
-    >
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
-      <span>添加评论</span>
-    </button>
-
     <!-- 发送至 Telegram 按钮 -->
     <button 
       @click="shareToTelegram"
       :disabled="sharing"
-      class="text-xs text-gray-500 hover:text-blue-500 transition flex items-center space-x-1 cursor-pointer disabled:opacity-50"
+      class="text-xs text-muted hover:text-blue-500 transition flex items-center space-x-1 cursor-pointer disabled:opacity-50"
       title="一键推送到 Telegram"
     >
       <svg v-if="sharing" class="animate-spin w-3.5 h-3.5 text-blue-500" fill="none" viewBox="0 0 24 24">
@@ -38,61 +29,19 @@
     <button 
       v-if="store.currentAnswer"
       @click="store.toggleFavorite(store.currentAnswer, false)"
-      :class="['text-xs transition flex items-center cursor-pointer', store.currentAnswer.is_favorite ? 'text-yellow-400 hover:text-yellow-500' : 'text-gray-500 hover:text-yellow-400']"
+      :class="['text-xs transition flex items-center cursor-pointer', store.currentAnswer.is_favorite ? 'text-yellow-400 hover:text-yellow-500' : 'text-muted hover:text-yellow-400']"
       title="收藏/取消收藏"
     >
       <svg class="w-3.5 h-3.5" :fill="store.currentAnswer.is_favorite ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
       </svg>
     </button>
-
-    <!-- 评论弹窗 -->
-    <BaseModal 
-      :show="showModal" 
-      @close="showModal = false"
-      maxWidthClass="max-w-lg"
-      contentClass="p-6 space-y-4"
-      zIndexClass="z-[70]"
-    >
-      <div class="flex items-center justify-between border-b pb-3">
-        <h3 class="text-sm font-semibold text-gray-800">添加评论或笔记</h3>
-        <button @click="showModal = false" class="text-gray-400 hover:text-gray-600 text-lg cursor-pointer">&times;</button>
-      </div>
-      
-      <div class="space-y-2">
-        <textarea 
-          v-model="commentContent"
-          rows="4"
-          placeholder="在这里粘贴您的评论或学习笔记..."
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          :disabled="loading"
-        ></textarea>
-      </div>
-
-      <div class="flex justify-end space-x-2 pt-2">
-        <button 
-          @click="showModal = false"
-          class="px-4 py-1.5 border border-gray-300 text-gray-600 rounded-lg text-xs hover:bg-gray-50 transition cursor-pointer"
-          :disabled="loading"
-        >
-          取消
-        </button>
-        <button 
-          @click="submitComment"
-          class="px-4 py-1.5 bg-brand text-white rounded-lg text-xs font-medium hover:bg-brand-hover transition disabled:bg-gray-400 cursor-pointer"
-          :disabled="loading || !commentContent.trim()"
-        >
-          {{ loading ? '提交中...' : '提交评论' }}
-        </button>
-      </div>
-    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useArchiveStore } from '../stores/archive'
-import BaseModal from './common/BaseModal.vue'
 
 const props = defineProps({
   answerId: {
@@ -101,43 +50,14 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['commentAdded', 'edit'])
+const emit = defineEmits(['edit'])
 
-const showModal = ref(false)
-const commentContent = ref('')
-const loading = ref(false)
 const sharing = ref(false)
 
 const API_BASE = ''
 const store = useArchiveStore()
 const apiFetch = store.apiFetch
 const showAlert = store.showAlert
-
-const submitComment = async () => {
-  if (!commentContent.value.trim()) return
-  loading.value = true
-
-  try {
-    const res = await apiFetch(`${API_BASE}/api/answers/${props.answerId}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: commentContent.value.trim() })
-    })
-
-    if (res.ok) {
-      showModal.value = false
-      commentContent.value = ''
-      emit('commentAdded')
-    } else {
-      store.showToast('评论提交失败', 'error')
-    }
-  } catch (err) {
-    console.error(err)
-    store.showToast('网络请求失败', 'error')
-  } finally {
-    loading.value = false
-  }
-}
 
 const shareToTelegram = async () => {
   if (sharing.value) return

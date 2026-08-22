@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white border-b border-gray-200 flex-shrink-0 select-none pt-[env(safe-area-inset-top)]">
+  <header class="bg-surface border-b border-line flex-shrink-0 select-none pt-[env(safe-area-inset-top)]">
     <div class="h-14 flex items-center justify-between px-3">
       <!-- 左侧：Logo 与 基础控制 -->
       <div class="flex items-center space-x-3 md:space-x-6">
@@ -10,7 +10,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
           </svg>
         </div>
-        <span class="text-tweet font-bold text-gray-800 tracking-tight">ZHArchiver</span>
+        <span class="text-tweet font-bold text-primary tracking-tight">ZHArchiver</span>
       </div>
     </div>
 
@@ -21,7 +21,7 @@
           v-model="store.searchQuery"
           type="text" 
           placeholder="搜索回答..." 
-          class="w-full h-8 bg-gray-200/60 text-xs text-gray-800 pl-7 pr-3 rounded-[10px] border border-transparent focus:bg-white focus:border-blue-500 focus:outline-none transition appearance-none"
+          class="w-full h-8 bg-line/60 text-xs text-primary pl-7 pr-3 rounded-[10px] border border-transparent focus:bg-surface focus:border-blue-500 focus:outline-none transition appearance-none"
         />
         <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>

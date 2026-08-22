@@ -14,7 +14,7 @@
       ></button>
 
       <!-- 分隔线 -->
-      <div class="w-px h-4 bg-gray-200 mx-0.5 flex-shrink-0"></div>
+      <div class="w-px h-4 bg-line mx-0.5 flex-shrink-0"></div>
 
       <!-- 展开原生自定义调色盘按钮 -->
       <label

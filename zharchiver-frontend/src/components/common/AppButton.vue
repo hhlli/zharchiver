@@ -50,8 +50,8 @@ const sizeClasses = {
 
 const variantClasses = {
   primary: 'bg-brand text-white hover:bg-brand-hover focus:ring-brand shadow-sm',
-  secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 focus:ring-brand shadow-sm',
+  secondary: 'bg-surface text-secondary border border-line hover:bg-surface-hover focus:ring-brand shadow-sm',
   danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm',
-  ghost: 'bg-transparent text-gray-600 hover:text-brand hover:bg-gray-100 focus:ring-gray-200'
+  ghost: 'bg-transparent text-secondary hover:text-brand hover:bg-surface-hover focus:ring-gray-200'
 }
 </script>

@@ -79,7 +79,7 @@ type AnswerListResult struct {
 	Limit int            `json:"limit"`
 }
 
-func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string) (*AnswerListResult, error) {
+func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string, isFavorite bool) (*AnswerListResult, error) {
 	if page < 1 {
 		page = 1
 	}
@@ -98,6 +98,9 @@ func GetAnswersPaginated(db *sql.DB, page, limit int, tag, search string) (*Answ
 	if search != "" {
 		where += " AND (title LIKE ? OR author_name LIKE ?)"
 		args = append(args, "%"+search+"%", "%"+search+"%")
+	}
+	if isFavorite {
+		where += " AND is_favorite = 1"
 	}
 
 	// 查总数

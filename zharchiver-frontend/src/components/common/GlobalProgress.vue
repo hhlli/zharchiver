@@ -1,6 +1,6 @@
 <template>
   <transition name="fade-slide">
-    <div v-if="show" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 rounded-xl shadow-xl border border-gray-200 overflow-hidden z-50 min-w-[280px] pointer-events-auto">
+    <div v-if="show" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-surface text-primary rounded-xl shadow-xl border border-line overflow-hidden z-50 min-w-[280px] pointer-events-auto">
       <div class="px-4 py-3">
         <div class="flex items-center justify-between mb-2">
           <div class="flex items-center space-x-2">
@@ -14,7 +14,7 @@
             <svg v-else class="h-4 w-4 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
-            <span class="text-sm font-medium" :class="isSuccess ? 'text-green-600' : isFailed ? 'text-red-600' : 'text-gray-800'">
+            <span class="text-sm font-medium" :class="isSuccess ? 'text-green-600' : isFailed ? 'text-red-600' : 'text-primary'">
               {{ title }}
             </span>
           </div>
@@ -24,7 +24,7 @@
           <span v-if="!isSuccess && !isFailed" class="text-xs font-semibold text-blue-500">{{ percent }}%</span>
         </div>
         
-        <div class="w-full bg-gray-100 rounded-full h-1 overflow-hidden">
+        <div class="w-full bg-surface-hover rounded-full h-1 overflow-hidden">
           <div class="h-1 rounded-full transition-all duration-300 ease-out" :class="isSuccess ? 'bg-green-500' : isFailed ? 'bg-red-400' : 'bg-blue-500'" :style="{ width: percent + '%' }"></div>
         </div>
       </div>

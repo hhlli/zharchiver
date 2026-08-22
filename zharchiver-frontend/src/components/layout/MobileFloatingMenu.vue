@@ -9,39 +9,39 @@
       leave-from-class="opacity-100 translate-y-0 scale-100"
       leave-to-class="opacity-0 translate-y-4 scale-95"
     >
-      <div v-if="isOpen" class="absolute bottom-16 right-0 w-48 bg-white/90 backdrop-blur-md border border-gray-200 rounded-2xl shadow-xl overflow-hidden flex flex-col py-2">
+      <div v-if="isOpen" class="absolute bottom-16 right-0 w-48 bg-surface/90 backdrop-blur-md border border-line rounded-2xl shadow-xl overflow-hidden flex flex-col py-2">
         <div class="px-4 py-2 text-xs font-semibold text-gray-400 tracking-wider">
           系统设置
         </div>
         <button 
           @click="openSettings('security')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'security' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'security' && store.currentView === 'settings' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
         >账户安全</button>
         <button 
           @click="openSettings('auth')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'auth' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'auth' && store.currentView === 'settings' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
         >平台鉴权</button>
         <button 
           @click="openSettings('data')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'data' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'data' && store.currentView === 'settings' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
         >数据管理</button>
         <button 
           @click="openSettings('display')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'display' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'display' && store.currentView === 'settings' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
         >偏好设置</button>
         <button 
           @click="openSettings('ai')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'ai' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'ai' && store.currentView === 'settings' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
         >工具</button>
         <button 
           @click="openSettings('logs')"
-          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'logs' && store.currentView === 'settings' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50']"
+          :class="['w-full text-left px-4 py-2 text-sm font-medium transition cursor-pointer', store.activeSetting === 'logs' && store.currentView === 'settings' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
         >日志中心</button>
 
-        <div v-if="store.currentView === 'settings'" class="border-t border-gray-100 mt-1 pt-1">
+        <div v-if="store.currentView === 'settings'" class="border-t border-line-light mt-1 pt-1">
           <button 
             @click="goHome"
-            class="w-full text-left px-4 py-2 text-sm font-medium text-brand hover:bg-blue-50 transition cursor-pointer"
+            class="w-full text-left px-4 py-2 text-sm font-medium text-brand hover:bg-blue-50 dark:hover:bg-blue-900/30 transition cursor-pointer"
           >返回主界面</button>
         </div>
       </div>

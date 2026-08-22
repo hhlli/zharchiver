@@ -1,51 +1,51 @@
 <template>
   <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
-    <h2 class="text-2xl font-semibold text-gray-800 mb-8">账户安全</h2>
+    <h2 class="text-2xl font-semibold text-primary mb-8">账户安全</h2>
 
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-        <h3 class="text-sm font-semibold text-gray-700">访问密码控制</h3>
+    <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
+      <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+        <h3 class="text-sm font-semibold text-secondary">访问密码控制</h3>
         <span class="text-xs text-gray-400">防止未授权用户访问您的应用数据</span>
       </div>
       
       <div class="p-4 md:p-5 space-y-4">
         <div class="flex items-center justify-between h-8">
-          <label class="block text-sm font-medium text-gray-700">启用访问密码</label>
+          <label class="block text-sm font-medium text-secondary">启用访问密码</label>
           <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
             <input type="checkbox" v-model="isPasswordEnabled" class="sr-only peer">
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
+            <div class="w-11 h-6 bg-line peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand"></div>
           </label>
         </div>
 
         <!-- 原密码验证 (如果系统当前已开启密码，不管是修改还是关闭，都必须输入原密码) -->
-        <div v-if="initialPasswordEnabled" class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 pt-4 border-t border-gray-100">
-          <label class="block text-sm font-medium text-gray-700 sm:w-32">原密码</label>
+        <div v-if="initialPasswordEnabled" class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 pt-4 border-t border-line-light">
+          <label class="block text-sm font-medium text-secondary sm:w-32">原密码</label>
           <input
             type="password"
             v-model="oldPassword"
             placeholder="验证当前密码"
-            class="flex-1 w-full sm:max-w-md text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="flex-1 w-full sm:max-w-md text-sm border border-line rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
         </div>
 
         <!-- 密码设置表单 (开启时才显示新密码框) -->
-        <div v-if="isPasswordEnabled" class="space-y-4 pt-4 border-t border-gray-100">
+        <div v-if="isPasswordEnabled" class="space-y-4 pt-4 border-t border-line-light">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0">
-            <label class="block text-sm font-medium text-gray-700 sm:w-32">新密码</label>
+            <label class="block text-sm font-medium text-secondary sm:w-32">新密码</label>
             <input
               type="password"
               v-model="newPassword"
               placeholder="输入新密码"
-              class="flex-1 w-full sm:max-w-md text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 w-full sm:max-w-md text-sm border border-line rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
           </div>
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0">
-            <label class="block text-sm font-medium text-gray-700 sm:w-32">确认密码</label>
+            <label class="block text-sm font-medium text-secondary sm:w-32">确认密码</label>
             <input
               type="password"
               v-model="confirmPassword"
               placeholder="再次输入新密码"
-              class="flex-1 w-full sm:max-w-md text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="flex-1 w-full sm:max-w-md text-sm border border-line rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
           </div>
         </div>

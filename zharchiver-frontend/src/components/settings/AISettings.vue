@@ -1,62 +1,62 @@
 <template>
   <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
-    <h2 class="text-xl md:text-2xl font-semibold text-gray-800 mb-8">工具配置</h2>
+    <h2 class="text-xl md:text-2xl font-semibold text-primary mb-8">工具配置</h2>
     
     <!-- AI -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6">
-      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-        <h3 class="text-sm font-semibold text-gray-700">视觉大模型 (Vision LLM) 接口</h3>
+    <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm mb-6">
+      <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+        <h3 class="text-sm font-semibold text-secondary">视觉大模型 (Vision LLM) 接口</h3>
         <span class="text-xs text-gray-400">接口需兼容 OpenAI 的 /v1/chat/completions 规范</span>
       </div>
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
         <div class="flex flex-col space-y-1.5">
           <div class="flex items-center space-x-2">
-            <span v-if="config.ai_profiles && config.ai_profiles.length > 0" class="px-2.5 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded-full border border-green-100">已配置</span>
-            <span v-else class="px-2.5 py-0.5 bg-gray-50 text-gray-500 text-xs font-medium rounded-full border border-gray-200">未配置</span>
+            <span v-if="config.ai_profiles && config.ai_profiles.length > 0" class="px-2.5 py-0.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium rounded-full border border-green-100 dark:border-green-900/50">已配置</span>
+            <span v-else class="px-2.5 py-0.5 bg-surface-hover text-muted text-xs font-medium rounded-full border border-line">未配置</span>
           </div>
-          <p class="text-xs text-gray-500">配置大模型 API，让机器人在归档时智能提取截图正文和标题，并自动为您分类。</p>
+          <p class="text-xs text-muted">配置大模型 API，让机器人在归档时智能提取截图正文和标题，并自动为您分类。</p>
         </div>
-        <button @click="openModal('ai')" class="w-full sm:w-auto px-4 py-2 bg-white hover:bg-gray-50 text-brand text-sm font-medium rounded-lg transition-colors border border-gray-200 shadow-sm flex items-center justify-center space-x-1.5 whitespace-nowrap">
+        <button @click="openModal('ai')" class="w-full sm:w-auto px-4 py-2 bg-surface hover:bg-surface-hover text-brand text-sm font-medium rounded-lg transition-colors border border-line shadow-sm flex items-center justify-center space-x-1.5 whitespace-nowrap">
           <span>⚙️ 配置接口</span>
         </button>
       </div>
     </div>
 
     <!-- TG Archive -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6">
-      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-        <h3 class="text-sm font-semibold text-gray-700">Telegram 归档机器人</h3>
+    <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm mb-6">
+      <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+        <h3 class="text-sm font-semibold text-secondary">Telegram 归档机器人</h3>
         <span class="text-xs text-gray-400">负责监听您的消息并自动抓取</span>
       </div>
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
         <div class="flex flex-col space-y-1.5">
           <div class="flex items-center space-x-2">
-            <span v-if="tgConfig.telegram_bot_token && tgConfig.telegram_chat_id" class="px-2.5 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded-full border border-green-100">已配置</span>
-            <span v-else class="px-2.5 py-0.5 bg-gray-50 text-gray-500 text-xs font-medium rounded-full border border-gray-200">未配置</span>
+            <span v-if="tgConfig.telegram_bot_token && tgConfig.telegram_chat_id" class="px-2.5 py-0.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium rounded-full border border-green-100 dark:border-green-900/50">已配置</span>
+            <span v-else class="px-2.5 py-0.5 bg-surface-hover text-muted text-xs font-medium rounded-full border border-line">未配置</span>
           </div>
-          <p class="text-xs text-gray-500">配置专属 Bot，监听您的私聊消息或群消息，将链接、文本、图片自动抓取到归档系统。</p>
+          <p class="text-xs text-muted">配置专属 Bot，监听您的私聊消息或群消息，将链接、文本、图片自动抓取到归档系统。</p>
         </div>
-        <button @click="openModal('tg_archive')" class="w-full sm:w-auto px-4 py-2 bg-white hover:bg-gray-50 text-brand text-sm font-medium rounded-lg transition-colors border border-gray-200 shadow-sm flex items-center justify-center space-x-1.5 whitespace-nowrap">
+        <button @click="openModal('tg_archive')" class="w-full sm:w-auto px-4 py-2 bg-surface hover:bg-surface-hover text-brand text-sm font-medium rounded-lg transition-colors border border-line shadow-sm flex items-center justify-center space-x-1.5 whitespace-nowrap">
           <span>⚙️ 配置机器人</span>
         </button>
       </div>
     </div>
 
     <!-- TG Push -->
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm mb-6">
-      <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
-        <h3 class="text-sm font-semibold text-gray-700">Telegram 推送机器人</h3>
+    <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm mb-6">
+      <div class="px-5 py-4 border-b border-line-light bg-surface-hover/50 flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-1 sm:space-y-0">
+        <h3 class="text-sm font-semibold text-secondary">Telegram 推送机器人</h3>
         <span class="text-xs text-gray-400">负责一键推送文章给您或频道</span>
       </div>
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
         <div class="flex flex-col space-y-1.5">
           <div class="flex items-center space-x-2">
-            <span v-if="tgConfig.telegram_push_bot_token && tgConfig.telegram_push_chat_id" class="px-2.5 py-0.5 bg-green-50 text-green-600 text-xs font-medium rounded-full border border-green-100">已配置</span>
-            <span v-else class="px-2.5 py-0.5 bg-gray-50 text-gray-500 text-xs font-medium rounded-full border border-gray-200">未配置</span>
+            <span v-if="tgConfig.telegram_push_bot_token && tgConfig.telegram_push_chat_id" class="px-2.5 py-0.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium rounded-full border border-green-100 dark:border-green-900/50">已配置</span>
+            <span v-else class="px-2.5 py-0.5 bg-surface-hover text-muted text-xs font-medium rounded-full border border-line">未配置</span>
           </div>
-          <p class="text-xs text-gray-500">配置推送频道，在网页端一键将排版文章推送至您的 Telegram。</p>
+          <p class="text-xs text-muted">配置推送频道，在网页端一键将排版文章推送至您的 Telegram。</p>
         </div>
-        <button @click="openModal('tg_push')" class="w-full sm:w-auto px-4 py-2 bg-white hover:bg-gray-50 text-brand text-sm font-medium rounded-lg transition-colors border border-gray-200 shadow-sm flex items-center justify-center space-x-1.5 whitespace-nowrap">
+        <button @click="openModal('tg_push')" class="w-full sm:w-auto px-4 py-2 bg-surface hover:bg-surface-hover text-brand text-sm font-medium rounded-lg transition-colors border border-line shadow-sm flex items-center justify-center space-x-1.5 whitespace-nowrap">
           <span>⚙️ 配置推送</span>
         </button>
       </div>
@@ -64,15 +64,15 @@
 
     <!-- 全局统一样式的弹窗层 -->
     <div v-if="activeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity">
-      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+      <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
         <!-- 弹窗 Header -->
-        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-          <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
+        <div class="px-6 py-4 border-b border-line-light flex justify-between items-center bg-surface-hover/50">
+          <h3 class="text-base font-bold text-primary flex items-center gap-2">
             <span v-if="activeModal === 'ai'">🤖 视觉大模型配置</span>
             <span v-if="activeModal === 'tg_archive'">📥 归档机器人配置</span>
             <span v-if="activeModal === 'tg_push'">📤 推送机器人配置</span>
           </h3>
-          <button @click="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+          <button @click="closeModal" class="text-gray-400 hover:text-secondary transition-colors cursor-pointer">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
         </div>
@@ -82,19 +82,19 @@
           <!-- 1. AI 模型配置内容 -->
           <template v-if="activeModal === 'ai'">
             <!-- 配置选择器 -->
-            <div class="bg-blue-50/50 p-3.5 rounded-xl border border-blue-100">
-              <label class="block text-xs font-semibold text-blue-900 mb-2">切换配置方案:</label>
+            <div class="bg-blue-50/50 dark:bg-blue-900/20 p-3.5 rounded-xl border border-blue-100 dark:border-blue-900/50">
+              <label class="block text-xs font-semibold text-blue-900 dark:text-blue-400 mb-2">切换配置方案:</label>
               <div class="flex items-center gap-2.5">
-                <select v-model="config.ai_active_profile_id" class="flex-1 min-w-0 bg-white border border-blue-200 text-blue-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand cursor-pointer shadow-sm">
+                <select v-model="config.ai_active_profile_id" class="flex-1 min-w-0 bg-surface border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand cursor-pointer shadow-sm">
                   <option v-for="profile in config.ai_profiles" :key="profile.id" :value="profile.id">
                     {{ profile.name }}
                   </option>
                 </select>
                 <div class="flex items-center space-x-2 flex-shrink-0">
-                  <button @click="addNewProfile" class="w-9 h-9 bg-white text-blue-600 rounded-lg border border-blue-200 hover:bg-blue-50 transition flex items-center justify-center cursor-pointer shadow-sm" title="新建方案">
+                  <button @click="addNewProfile" class="w-9 h-9 bg-surface text-blue-600 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 dark:hover:bg-blue-900/40 transition flex items-center justify-center cursor-pointer shadow-sm" title="新建方案">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                   </button>
-                  <button @click="deleteActiveProfile" :disabled="config.ai_profiles.length <= 1" :class="['w-9 h-9 rounded-lg border transition flex items-center justify-center shadow-sm', config.ai_profiles.length <= 1 ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed' : 'bg-white text-red-500 border-red-200 hover:bg-red-50 cursor-pointer']" title="删除当前方案">
+                  <button @click="deleteActiveProfile" :disabled="config.ai_profiles.length <= 1" :class="['w-9 h-9 rounded-lg border transition flex items-center justify-center shadow-sm', config.ai_profiles.length <= 1 ? 'bg-surface-hover text-gray-400 border-line cursor-not-allowed' : 'bg-surface text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-900/30 cursor-pointer']" title="删除当前方案">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
@@ -104,20 +104,20 @@
             <!-- 当前配置编辑区 -->
             <div v-if="activeProfile" class="space-y-4">
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">配置名称</label>
-                <input v-model="activeProfile.name" type="text" placeholder="例如: OpenAI GPT-4o" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">配置名称</label>
+                <input v-model="activeProfile.name" type="text" placeholder="例如: OpenAI GPT-4o" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">API Base URL</label>
-                <input v-model="activeProfile.base_url" type="text" placeholder="https://api.openai.com/v1/chat/completions" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">API Base URL</label>
+                <input v-model="activeProfile.base_url" type="text" placeholder="https://api.openai.com/v1/chat/completions" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">API Key</label>
-                <input v-model="activeProfile.api_key" type="password" placeholder="sk-..." class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">API Key</label>
+                <input v-model="activeProfile.api_key" type="password" placeholder="sk-..." class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Model Name (模型标识)</label>
-                <input v-model="activeProfile.model_name" type="text" placeholder="例如: gpt-4o, qwen-vl-max" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">Model Name (模型标识)</label>
+                <input v-model="activeProfile.model_name" type="text" placeholder="例如: gpt-4o, qwen-vl-max" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
             </div>
           </template>
@@ -126,17 +126,17 @@
           <template v-if="activeModal === 'tg_archive'">
             <div class="space-y-4">
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Telegram API Endpoint (可选)</label>
-                <input v-model="tgConfig.telegram_api_endpoint" type="text" placeholder="默认: https://api.telegram.org" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">Telegram API Endpoint (可选)</label>
+                <input v-model="tgConfig.telegram_api_endpoint" type="text" placeholder="默认: https://api.telegram.org" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
                 <p class="text-[11px] text-gray-400 mt-1.5 leading-tight">如需抓取大于 20MB 的文件或国内直连，请填写您自建的 Local Telegram Bot API 服务器地址 (例如: http://127.0.0.1:8081)。留空则使用官方 API。</p>
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Bot Token</label>
-                <input v-model="tgConfig.telegram_bot_token" type="password" placeholder="例如: 123456:ABC-DEF1234ghIkl..." class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">Bot Token</label>
+                <input v-model="tgConfig.telegram_bot_token" type="password" placeholder="例如: 123456:ABC-DEF1234ghIkl..." class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">您的 Chat ID (用于接收抓取的对话)</label>
-                <input v-model="tgConfig.telegram_chat_id" type="text" placeholder="例如: 123456789" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">您的 Chat ID (用于接收抓取的对话)</label>
+                <input v-model="tgConfig.telegram_chat_id" type="text" placeholder="例如: 123456789" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
             </div>
           </template>
@@ -144,23 +144,23 @@
           <!-- 3. TG 推送机器人配置内容 -->
           <template v-if="activeModal === 'tg_push'">
             <div class="space-y-4">
-              <div class="bg-blue-50/50 p-3 rounded-lg border border-blue-100 mb-2 text-xs text-blue-800 leading-relaxed">
+              <div class="bg-blue-50/50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-900/50 mb-2 text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
                 推送机器人用于在网页上点击“分享到 TG”时，将格式化排版好的文章推送到指定频道或个人对话中。您可以与归档机器人使用同一个 Bot。
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">Push Bot Token</label>
-                <input v-model="tgConfig.telegram_push_bot_token" type="password" placeholder="推送机器人的 Token" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">Push Bot Token</label>
+                <input v-model="tgConfig.telegram_push_bot_token" type="password" placeholder="推送机器人的 Token" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-gray-700 mb-1.5">目标频道或 Chat ID</label>
-                <input v-model="tgConfig.telegram_push_chat_id" type="text" placeholder="例如: @my_channel_id 或 123456789" class="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono focus:outline-none focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <label class="block text-xs font-semibold text-secondary mb-1.5">目标频道或 Chat ID</label>
+                <input v-model="tgConfig.telegram_push_chat_id" type="text" placeholder="例如: @my_channel_id 或 123456789" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
             </div>
           </template>
         </div>
         
         <!-- 弹窗 Footer -->
-        <div class="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-end space-x-3">
+        <div class="px-6 py-4 bg-surface-hover/50 border-t border-line-light flex justify-end space-x-3">
           <template v-if="activeModal === 'ai'">
             <BaseButton variant="outline" :loading="isTesting" @click="testConnection">测试连通性</BaseButton>
             <BaseButton variant="primary" :loading="isSaving" @click="saveConfig('ai')">保存 AI 配置</BaseButton>

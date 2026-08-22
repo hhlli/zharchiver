@@ -14,6 +14,26 @@ export const useArchiveStore = defineStore('archive', () => {
   const currentView = ref('home')
   const activeSetting = ref('auth')
   const viewMode = ref(localStorage.getItem('viewMode') || 'grid')
+  const themeMode = ref(localStorage.getItem('themeMode') || 'auto')
+
+  // 应用主题到 HTML
+  const applyTheme = (mode) => {
+    themeMode.value = mode
+    localStorage.setItem('themeMode', mode)
+    if (mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+
+  // 监听系统主题变化
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (themeMode.value === 'auto') applyTheme('auto')
+  })
+
+  // 初始化时应用一次
+  applyTheme(themeMode.value)
 
   const searchQuery = ref('')
   const activeCategory = ref('all')
@@ -89,7 +109,11 @@ export const useArchiveStore = defineStore('archive', () => {
     const params = new URLSearchParams()
     params.set('page', page)
     params.set('limit', PAGE_LIMIT)
-    if (activeCategory.value !== 'all') params.set('tag', activeCategory.value)
+    if (activeCategory.value === '_favorite_') {
+      params.set('is_favorite', 'true')
+    } else if (activeCategory.value !== 'all') {
+      params.set('tag', activeCategory.value)
+    }
     if (searchQuery.value.trim()) params.set('search', searchQuery.value.trim())
     return `${API_BASE}/api/answers?${params.toString()}`
   }
@@ -424,6 +448,7 @@ export const useArchiveStore = defineStore('archive', () => {
     currentView,
     activeSetting,
     viewMode,
+    themeMode,
     searchQuery,
     activeCategory,
     answers,
@@ -446,6 +471,7 @@ export const useArchiveStore = defineStore('archive', () => {
     hasMore,
 
     setViewMode,
+    applyTheme,
     showAlert,
     showToast,
     apiFetch,
