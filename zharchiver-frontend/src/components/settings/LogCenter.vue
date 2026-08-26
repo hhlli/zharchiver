@@ -80,14 +80,12 @@ const initWebSocket = () => {
   ws.onmessage = (event) => {
     try {
       const logEntry = JSON.parse(event.data)
-      logs.value.push(logEntry)
+      logs.value.unshift(logEntry)
       
       // 限制最大保留行数防止内存溢出
       if (logs.value.length > 2000) {
-        logs.value.shift()
+        logs.value.pop()
       }
-      
-      scrollToBottom()
     } catch (e) {
       console.error('日志解析失败:', e)
     }
