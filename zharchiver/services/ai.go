@@ -251,7 +251,13 @@ func ProcessImageArchiveTask(db *sql.DB, imgBytes []byte) (*models.AnswerData, e
 
 	var extracted aiExtractedData
 	if err := json.Unmarshal([]byte(contentStr), &extracted); err != nil {
-		return nil, fmt.Errorf("解析提取出的 JSON 失败: %v\n返回内容为: %s", err, contentStr)
+		// 回退机制：如果大模型没有遵守输出 JSON 的指令，直接输出了正文文本
+		extracted = aiExtractedData{
+			Title:       "无标题 (提取格式异常)",
+			AuthorName:  "未知",
+			ContentHTML: contentStr,
+			Tag:         "未分类",
+		}
 	}
 
 	// 存入数据库
