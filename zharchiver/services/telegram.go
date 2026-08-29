@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"zharchiver/models"
+	"zharchiver/utils"
 )
 
 func sendMessageToTelegram(db *sql.DB, token, chatID, text string) {
@@ -215,6 +216,11 @@ type ForceReply struct {
 	ForceReply bool `json:"force_reply"`
 }
 
+type TelegramDocument struct {
+	FileID   string `json:"file_id"`
+	MimeType string `json:"mime_type"`
+}
+
 type TelegramMessage struct {
 	MessageID int `json:"message_id"`
 	Chat      struct {
@@ -222,6 +228,7 @@ type TelegramMessage struct {
 	} `json:"chat"`
 	Text           string              `json:"text"`
 	Photo          []TelegramPhotoSize `json:"photo"`
+	Document       *TelegramDocument   `json:"document,omitempty"`
 	ReplyToMessage *TelegramMessage    `json:"reply_to_message,omitempty"`
 }
 
@@ -358,24 +365,39 @@ func StartTelegramBotListener(db *sql.DB) {
 					continue
 				}
 
+				var targetFileID string
 				if len(update.Message.Photo) > 0 {
-					photo := update.Message.Photo[len(update.Message.Photo)-1]
+					targetFileID = update.Message.Photo[len(update.Message.Photo)-1].FileID
+				} else if update.Message.Document != nil && strings.HasPrefix(update.Message.Document.MimeType, "image/") {
+					targetFileID = update.Message.Document.FileID
+				}
+
+				if targetFileID != "" {
 					go func(fileID string) {
+						utils.BroadcastLog("TASK_START", "Telegram 图片归档")
+						utils.BroadcastLog("INFO", "=== 开始新的 Telegram 图片归档任务 ===")
 						sendMessageToTelegram(db, token, authorizedChatIDStr, "收到图片，正在召唤 AI 视觉提取...")
 						imgBytes, err := downloadTelegramFile(db, token, fileID)
 						if err != nil {
+							utils.BroadcastLog("ERROR", fmt.Sprintf("Telegram 图片下载失败: %v", err))
+							utils.BroadcastLog("TASK_FAILED", "Telegram 图片下载失败")
 							sendMessageToTelegram(db, token, authorizedChatIDStr, "❌ 图片下载失败")
 							return
 						}
 						
+						utils.BroadcastLog("INFO", "已获取到图片文件，正在召唤 AI 视觉提取...")
 						data, err := ProcessImageArchiveTask(db, imgBytes)
 						if err != nil {
+							utils.BroadcastLog("ERROR", fmt.Sprintf("Telegram 视觉提取归档失败: %v", err))
+							utils.BroadcastLog("TASK_FAILED", "视觉提取失败: "+err.Error())
 							sendMessageToTelegram(db, token, authorizedChatIDStr, fmt.Sprintf("❌ 提取归档失败：\n%v", err))
 						} else {
+							utils.BroadcastLog("INFO", fmt.Sprintf("✅ 视觉提取并归档成功，标题: [%s]", data.Title))
+							utils.BroadcastLog("TASK_SUCCESS", "Telegram 视觉图片归档完成")
 							markup := generateTagMarkup(db, data.AnswerID)
 							sendMessageToTelegramWithMarkup(db, token, authorizedChatIDStr, fmt.Sprintf("✅ 视觉提取并归档成功！\n标题：%s\n作者：%s", data.Title, data.AuthorName), markup)
 						}
-					}(photo.FileID)
+					}(targetFileID)
 					continue
 				}
 
