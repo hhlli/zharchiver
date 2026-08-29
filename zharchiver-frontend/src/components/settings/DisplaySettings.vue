@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
+  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8 transition-opacity duration-300" :class="isLoading ? 'opacity-0' : 'opacity-100'">
     <h2 class="text-2xl font-semibold text-primary mb-8">偏好设置</h2>
     <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
@@ -106,6 +106,7 @@ import { ref, onMounted } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 
 const store = useArchiveStore()
+const isLoading = ref(true)
 const autoPushEnabled = ref(false)
 const autoCategorizeEnabled = ref(false)
 
@@ -134,6 +135,7 @@ onMounted(async () => {
   } catch (err) {
     console.error('获取偏好设置失败:', err)
   }
+  isLoading.value = false
 })
 
 const toggleAutoPush = async () => {

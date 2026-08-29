@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
+  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8 transition-opacity duration-300" :class="isLoading ? 'opacity-0' : 'opacity-100'">
     <h2 class="text-2xl font-semibold text-primary mb-8">数据管理</h2>
     
     <div class="space-y-6">
@@ -136,6 +136,7 @@ import MediaBrowserModal from '../modals/MediaBrowserModal.vue'
 import BaseButton from '../common/BaseButton.vue'
 
 const store = useArchiveStore()
+const isLoading = ref(true)
 const backupLoading = ref(true)
 const backupInfo = ref(null)
 
@@ -185,6 +186,7 @@ const loadTgConfig = async () => {
   } catch (e) {
     console.error(e)
   }
+  isLoading.value = false
 }
 
 const toggleBackup = () => {

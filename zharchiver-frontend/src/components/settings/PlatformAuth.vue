@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
+  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8 transition-opacity duration-300" :class="isLoading ? 'opacity-0' : 'opacity-100'">
     <h2 class="text-2xl font-semibold text-primary mb-8">平台鉴权</h2>
     <div class="bg-surface rounded-xl border border-line overflow-hidden shadow-sm">
       <div class="p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
@@ -74,6 +74,7 @@ const wsStatus = ref('connecting') // connecting, loading, qrcode, waiting, succ
 const wsMessage = ref('')
 const qrImage = ref('')
 const isZhihuConfigured = ref(false)
+const isLoading = ref(true)
 
 let ws = null
 
@@ -91,6 +92,7 @@ const checkStatus = async () => {
   } catch (err) {
     console.error('Failed to check auth status', err)
   }
+  isLoading.value = false
 }
 
 const openQRModal = () => {

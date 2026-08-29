@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8">
+  <div class="max-w-6xl mx-auto pt-4 pb-8 px-4 md:px-8 transition-opacity duration-300" :class="isLoading ? 'opacity-0' : 'opacity-100'">
     <h2 class="text-xl md:text-2xl font-semibold text-primary mb-8">工具配置</h2>
     
     <!-- AI -->
@@ -187,6 +187,7 @@ import { useArchiveStore } from '../../stores/archive'
 import BaseButton from '../common/BaseButton.vue'
 
 const store = useArchiveStore()
+const isLoading = ref(true)
 const apiFetch = store.apiFetch
 
 // 控制当前打开的弹窗类型: '' | 'ai' | 'tg_archive' | 'tg_push'
@@ -263,6 +264,7 @@ onMounted(async () => {
   } catch (err) {
     console.error('获取 Telegram 配置失败:', err)
   }
+  isLoading.value = false
 })
 
 const saveConfig = async (type) => {
