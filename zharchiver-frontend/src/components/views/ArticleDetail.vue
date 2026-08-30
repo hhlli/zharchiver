@@ -19,13 +19,13 @@
         class="w-full text-xl md:text-2xl font-bold text-primary leading-snug bg-transparent resize-none focus:outline-none overflow-hidden" 
         placeholder="文章标题" 
       ></textarea>
-      <div class="flex flex-col sm:flex-row sm:items-center text-xs text-muted space-y-2 sm:space-y-0">
-        <div class="flex items-center">
+      <div class="flex flex-wrap items-center justify-between text-xs text-muted gap-y-2 w-full">
+        <div class="flex items-center shrink-0">
           <span class="font-medium text-secondary">归档：{{ formatDate(store.currentAnswer?.saved_at) }}</span>
         </div>
         
-        <div class="sm:ml-auto flex items-center space-x-3">
-          <div class="flex items-center text-xs">
+        <div class="flex items-center space-x-2 sm:space-x-3 ml-auto shrink-0">
+          <div class="flex items-center text-xs shrink-0">
             <span 
               @click="startEditTag" 
               class="border px-2 py-0.5 rounded-md font-medium tracking-wider cursor-pointer select-none hover:opacity-80 transition"
@@ -68,12 +68,12 @@
       <RichEditor v-model="editContent" />
     </div>
 
-    <div class="mt-8 pt-3 border-t border-line-light flex flex-col sm:flex-row sm:items-center justify-between text-xs text-muted mb-3 gap-3">
-      <div class="flex items-center space-x-4">
-        <span class="font-medium text-secondary">作者：{{ store.currentAnswer?.author_name }}</span>
+    <div class="mt-8 pt-3 border-t border-line-light flex flex-wrap items-center justify-between text-xs text-muted mb-3 gap-y-3">
+      <div class="flex items-center space-x-3 sm:space-x-4 shrink-0 max-w-[55%] sm:max-w-none">
+        <span class="font-medium text-secondary truncate">作者：{{ store.currentAnswer?.author_name }}</span>
         <span>发布于 {{ formatTimestamp(store.currentAnswer?.created_time) }}</span>
       </div>
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-3 ml-auto shrink-0">
         <!-- 添加评论按钮 -->
         <button 
           @click="showCommentModal = true"

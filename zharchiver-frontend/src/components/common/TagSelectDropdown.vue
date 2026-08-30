@@ -25,6 +25,13 @@
         >
           所有
         </button>
+
+        <button
+          @click="selectOption('_favorite_')"
+          :class="['block w-full text-left px-4 py-2 text-sm font-medium transition-colors', modelValue === '_favorite_' ? 'bg-surface-hover text-primary' : 'text-secondary hover:bg-surface-hover']"
+        >
+          收藏
+        </button>
         
         <div v-if="tags && tags.length > 0" class="border-t border-line-light my-1 mx-2"></div>
 

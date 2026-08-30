@@ -94,14 +94,11 @@
             :class="['px-3 sm:px-4 py-3 transition cursor-pointer flex items-center justify-between group border-b border-line-light last:border-b-0', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'hover:bg-surface-hover' : 'hover:bg-blue-50 dark:hover:bg-blue-900/30/50 dark:hover:bg-blue-900/20']"
           >
             <div class="flex items-center space-x-3 pr-2 sm:pr-4 flex-1 overflow-hidden">
-              <PlatformIcon :questionId="store.groupedAnswers[virtualRow.index].answers[0].question_id" svgClass="w-4 h-4 hidden sm:block grayscale group-hover:grayscale-0 opacity-70 group-hover:opacity-100 transition-all" />
+              <PlatformIcon :questionId="store.groupedAnswers[virtualRow.index].answers[0].question_id" svgClass="w-4 h-4 hidden sm:block" />
               <div class="flex flex-col flex-1 overflow-hidden">
-                <span :class="['text-sm font-medium text-primary line-clamp-2 sm:truncate sm:mb-0 mb-1', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'group-hover:text-primary' : 'group-hover:text-brand']">
+                <span :class="['text-sm font-medium text-primary line-clamp-2 sm:truncate', isTwitter(store.groupedAnswers[virtualRow.index]) ? 'group-hover:text-primary' : 'group-hover:text-brand']">
                   {{ store.groupedAnswers[virtualRow.index].title || '（无标题）' }}
                 </span>
-                <div class="flex sm:hidden items-center text-xs text-gray-400">
-                  <span>归档：{{ formatDate(store.groupedAnswers[virtualRow.index].answers[0].saved_at) }}</span>
-                </div>
               </div>
             </div>
               <div class="flex items-center space-x-2 sm:space-x-4 ml-2 sm:ml-6 -mr-1">
