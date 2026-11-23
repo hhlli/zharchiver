@@ -20,17 +20,43 @@ export const useArchiveStore = defineStore('archive', () => {
   const applyTheme = (mode) => {
     themeMode.value = mode
     localStorage.setItem('themeMode', mode)
-    if (mode === 'dark' || (mode === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    let isDark = false
+    if (mode === 'dark') {
+      isDark = true
+    } else if (mode === 'auto') {
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.colorScheme) {
+        isDark = window.Telegram.WebApp.colorScheme === 'dark'
+      } else {
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      }
+    }
+    if (isDark) {
       document.documentElement.classList.add('dark')
     } else {
       document.documentElement.classList.remove('dark')
     }
   }
 
-  // 监听系统主题变化
+  // 监听系统主题及 Telegram WebApp 主题变化
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (themeMode.value === 'auto') applyTheme('auto')
   })
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    try {
+      window.Telegram.WebApp.onEvent('themeChanged', () => {
+        if (themeMode.value === 'auto') applyTheme('auto')
+      })
+    } catch (_) {}
+  }
+
+  // 如果 URL 中携带了 token，自动记录到本地存储
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tokenFromUrl = urlParams.get('token')
+    if (tokenFromUrl) {
+      localStorage.setItem('token', tokenFromUrl)
+    }
+  }
 
   // 初始化时应用一次
   applyTheme(themeMode.value)

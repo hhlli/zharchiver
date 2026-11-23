@@ -138,6 +138,11 @@
                 <label class="block text-xs font-semibold text-secondary mb-1.5">您的 Chat ID (用于接收抓取的对话)</label>
                 <input v-model="tgConfig.telegram_chat_id" type="text" placeholder="例如: 123456789" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
               </div>
+              <div>
+                <label class="block text-xs font-semibold text-secondary mb-1.5">Web App 访问域名 / 地址 (可选)</label>
+                <input v-model="tgConfig.telegram_web_app_url" type="text" placeholder="例如: https://zh.yourdomain.com" class="w-full h-10 px-3 bg-surface-hover border border-line rounded-lg text-sm font-mono focus:outline-none focus:bg-surface focus:border-brand focus:ring-1 focus:ring-brand transition" />
+                <p class="text-[11px] text-gray-400 mt-1.5 leading-tight">用于在 Telegram 归档通知中附带【📖 在 TG 中打开阅读】按钮。如需在 TG 内以 Mini App 原生弹窗直接阅读，请填写以 https:// 开头的有效公网地址。</p>
+              </div>
             </div>
           </template>
 
@@ -208,7 +213,8 @@ const tgConfig = ref({
   telegram_chat_id: '',
   telegram_push_bot_token: '',
   telegram_push_chat_id: '',
-  telegram_api_endpoint: ''
+  telegram_api_endpoint: '',
+  telegram_web_app_url: ''
 })
 
 const activeProfile = computed(() => {

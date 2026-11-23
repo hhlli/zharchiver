@@ -72,12 +72,19 @@ func sendMessageToTelegramWithMarkup(db *sql.DB, token, chatID, text string, mar
 }
 
 func editMessageText(db *sql.DB, token string, chatID int64, messageID int, text string) {
+	editMessageTextWithMarkup(db, token, chatID, messageID, text, nil)
+}
+
+func editMessageTextWithMarkup(db *sql.DB, token string, chatID int64, messageID int, text string, markup interface{}) {
 	url := fmt.Sprintf("%s/bot%s/editMessageText", models.GetTelegramAPIEndpoint(db), token)
 	
 	payload := map[string]interface{}{
 		"chat_id":    chatID,
 		"message_id": messageID,
 		"text":       text,
+	}
+	if markup != nil {
+		payload["reply_markup"] = markup
 	}
 	body, _ := json.Marshal(payload)
 	
@@ -106,8 +113,24 @@ func answerCallbackQuery(db *sql.DB, token, callbackQueryID string) {
 }
 
 func generateTagMarkup(db *sql.DB, answerID string) InlineKeyboardMarkup {
-	tags := models.GetAllTags(db)
 	var rows [][]InlineKeyboardButton
+
+	// 1. 如果配置了 Web App 访问地址，添加【📖 在 TG 中打开阅读】按钮作为首行
+	webAppURL := strings.TrimRight(strings.TrimSpace(models.GetSetting(db, "telegram_web_app_url")), "/")
+	if webAppURL != "" {
+		targetURL := fmt.Sprintf("%s/?id=%s", webAppURL, answerID)
+		btn := InlineKeyboardButton{
+			Text: "📖 在 TG 中打开阅读",
+		}
+		if strings.HasPrefix(strings.ToLower(webAppURL), "https://") {
+			btn.WebApp = &WebAppInfo{URL: targetURL}
+		} else {
+			btn.URL = targetURL
+		}
+		rows = append(rows, []InlineKeyboardButton{btn})
+	}
+
+	tags := models.GetAllTags(db)
 	var currentRow []InlineKeyboardButton
 	
 	for _, t := range tags {
@@ -129,6 +152,25 @@ func generateTagMarkup(db *sql.DB, answerID string) InlineKeyboardMarkup {
 	})
 	
 	return InlineKeyboardMarkup{InlineKeyboard: rows}
+}
+
+func generateOpenOnlyMarkup(db *sql.DB, answerID string) *InlineKeyboardMarkup {
+	webAppURL := strings.TrimRight(strings.TrimSpace(models.GetSetting(db, "telegram_web_app_url")), "/")
+	if webAppURL == "" {
+		return nil
+	}
+	targetURL := fmt.Sprintf("%s/?id=%s", webAppURL, answerID)
+	btn := InlineKeyboardButton{
+		Text: "📖 在 TG 中打开阅读",
+	}
+	if strings.HasPrefix(strings.ToLower(webAppURL), "https://") {
+		btn.WebApp = &WebAppInfo{URL: targetURL}
+	} else {
+		btn.URL = targetURL
+	}
+	return &InlineKeyboardMarkup{
+		InlineKeyboard: [][]InlineKeyboardButton{{btn}},
+	}
 }
 
 type TelegramPhotoSize struct {
@@ -203,9 +245,15 @@ func tryDownloadFile(endpoint, token, fileID string) ([]byte, error) {
 	return io.ReadAll(dlResp.Body)
 }
 
+type WebAppInfo struct {
+	URL string `json:"url"`
+}
+
 type InlineKeyboardButton struct {
-	Text         string `json:"text"`
-	CallbackData string `json:"callback_data,omitempty"`
+	Text         string      `json:"text"`
+	CallbackData string      `json:"callback_data,omitempty"`
+	WebApp       *WebAppInfo `json:"web_app,omitempty"`
+	URL          string      `json:"url,omitempty"`
 }
 
 type InlineKeyboardMarkup struct {
@@ -323,7 +371,8 @@ func StartTelegramBotListener(db *sql.DB) {
 							}
 							
 							db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", tag, tagColor, answerID)
-							editMessageText(db, token, cq.Message.Chat.ID, cq.Message.MessageID, fmt.Sprintf("✅ 归档成功并已添加标签：%s", tag))
+							openMarkup := generateOpenOnlyMarkup(db, answerID)
+							editMessageTextWithMarkup(db, token, cq.Message.Chat.ID, cq.Message.MessageID, fmt.Sprintf("✅ 归档成功并已添加标签：%s", tag), openMarkup)
 						}
 					} else if strings.HasPrefix(data, "new_tag:") {
 						parts := strings.SplitN(data, ":", 2)
@@ -359,7 +408,8 @@ func StartTelegramBotListener(db *sql.DB) {
 								tagColor = "blue"
 							}
 							db.Exec("UPDATE answers SET tag = ?, tag_color = ? WHERE answer_id = ?", newTag, tagColor, answerID)
-							sendMessageToTelegram(db, token, authorizedChatIDStr, fmt.Sprintf("✅ 成功为归档 %s 添加新标签：%s", answerID, newTag))
+							openMarkup := generateOpenOnlyMarkup(db, answerID)
+							sendMessageToTelegramWithMarkup(db, token, authorizedChatIDStr, fmt.Sprintf("✅ 成功为归档 %s 添加新标签：%s", answerID, newTag), openMarkup)
 						}
 					}
 					continue

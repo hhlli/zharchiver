@@ -92,7 +92,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useArchiveStore } from './stores/archive'
 import AppHeader from './components/layout/AppHeader.vue'
 import AppSidebar from './components/layout/AppSidebar.vue'
@@ -117,7 +117,42 @@ import MobileFloatingMenu from './components/layout/MobileFloatingMenu.vue'
 
 const store = useArchiveStore()
 
-onMounted(() => {
+onMounted(async () => {
   store.fetchAnswersList()
+
+  // Telegram WebApp 增强初始化
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+    try {
+      window.Telegram.WebApp.ready()
+      window.Telegram.WebApp.expand()
+      if (window.Telegram.WebApp.BackButton) {
+        window.Telegram.WebApp.BackButton.onClick(() => {
+          store.goBackToList()
+        })
+      }
+    } catch (e) {
+      console.warn('Telegram WebApp 初始化警告:', e)
+    }
+  }
+
+  // 检查 URL 是否指定文章 ID (?id=xxx)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search)
+    const targetId = urlParams.get('id')
+    if (targetId) {
+      await store.selectAnswer(targetId)
+    }
+  }
+})
+
+// 监听当前浏览文章，切换 Telegram 原生返回按钮
+watch(() => store.currentAnswer, (newVal) => {
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp?.BackButton) {
+    if (newVal) {
+      window.Telegram.WebApp.BackButton.show()
+    } else {
+      window.Telegram.WebApp.BackButton.hide()
+    }
+  }
 })
 </script>

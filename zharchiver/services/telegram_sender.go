@@ -162,7 +162,7 @@ func sendMediaGroup(apiEndpoint, token, chatID string, mediaPaths []string, capt
 }
 
 // sendText 发送普通文本消息，超长自动切分
-func sendText(apiEndpoint, token, chatID string, text string, replyToMessageID int) (int, error) {
+func sendText(apiEndpoint, token, chatID string, text string, replyToMessageID int, markup interface{}) (int, error) {
 	chunks := splitText(text, 4000)
 	var lastMsgID int
 
@@ -178,6 +178,10 @@ func sendText(apiEndpoint, token, chatID string, text string, replyToMessageID i
 			payload["reply_to_message_id"] = replyToMessageID
 		} else if i > 0 && lastMsgID > 0 {
 			payload["reply_to_message_id"] = lastMsgID
+		}
+
+		if i == len(chunks)-1 && markup != nil {
+			payload["reply_markup"] = markup
 		}
 
 		body, _ := json.Marshal(payload)
@@ -229,10 +233,11 @@ func ShareAnswerToTelegram(db *sql.DB, token, chatID string, data *models.Answer
 
 	var lastMessageID int
 	var err error
+	openMarkup := generateOpenOnlyMarkup(db, data.AnswerID)
 
 	// 场景 A: 没有媒体文件，直接发纯文本
 	if len(mediaChunks) == 0 {
-		_, err = sendText(apiEndpoint, token, chatID, fullText, 0)
+		_, err = sendText(apiEndpoint, token, chatID, fullText, 0, openMarkup)
 		return err
 	}
 
@@ -274,10 +279,12 @@ func ShareAnswerToTelegram(db *sql.DB, token, chatID string, data *models.Answer
 
 	// 如果有未发完的纯文本（因为 caption 超长），则用 sendMessage 回复发送
 	if remainingText != "" {
-		_, err = sendText(apiEndpoint, token, chatID, "...接上文：\n"+remainingText, lastMessageID)
+		_, err = sendText(apiEndpoint, token, chatID, "...接上文：\n"+remainingText, lastMessageID, openMarkup)
 		if err != nil {
 			return err
 		}
+	} else if openMarkup != nil {
+		_, _ = sendText(apiEndpoint, token, chatID, "📖 点击下方在 Telegram 中直接阅读完整归档：", lastMessageID, openMarkup)
 	}
 
 	return nil

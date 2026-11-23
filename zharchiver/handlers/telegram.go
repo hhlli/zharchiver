@@ -18,6 +18,7 @@ func (env *HandlerEnv) handleGetTelegramSettings(w http.ResponseWriter, r *http.
 		"telegram_push_bot_token": models.GetSetting(env.db, "telegram_push_bot_token"),
 		"telegram_push_chat_id":   models.GetSetting(env.db, "telegram_push_chat_id"),
 		"telegram_api_endpoint":   models.GetSetting(env.db, "telegram_api_endpoint"),
+		"telegram_web_app_url":    models.GetSetting(env.db, "telegram_web_app_url"),
 	})
 }
 
@@ -33,6 +34,7 @@ func (env *HandlerEnv) handleSaveTelegramSettings(w http.ResponseWriter, r *http
 	models.SetSetting(env.db, "telegram_push_bot_token", settings["telegram_push_bot_token"])
 	models.SetSetting(env.db, "telegram_push_chat_id", settings["telegram_push_chat_id"])
 	models.SetSetting(env.db, "telegram_api_endpoint", settings["telegram_api_endpoint"])
+	models.SetSetting(env.db, "telegram_web_app_url", settings["telegram_web_app_url"])
 	
 	utils.BroadcastLog("INFO", "已更新 Telegram 机器人配置")
 
