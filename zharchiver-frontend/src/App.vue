@@ -114,13 +114,18 @@ import BaseModal from './components/common/BaseModal.vue'
 import BaseButton from './components/common/BaseButton.vue'
 import ToastNotification from './components/common/ToastNotification.vue'
 import MobileFloatingMenu from './components/layout/MobileFloatingMenu.vue'
+import { getArchiveTargetId, getAuthTokenFromUrl } from './utils/urlHelper'
 
 const store = useArchiveStore()
 
 onMounted(async () => {
-  store.fetchAnswersList()
+  // 1. 如果 URL 或 Hash 中携带了 token，自动记录到本地存储
+  const token = getAuthTokenFromUrl()
+  if (token) {
+    localStorage.setItem('token', token)
+  }
 
-  // Telegram WebApp 增强初始化
+  // 2. Telegram WebApp 增强初始化
   if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
     try {
       window.Telegram.WebApp.ready()
@@ -135,13 +140,16 @@ onMounted(async () => {
     }
   }
 
-  // 检查 URL 是否指定文章 ID (?id=xxx)
-  if (typeof window !== 'undefined') {
-    const urlParams = new URLSearchParams(window.location.search)
-    const targetId = urlParams.get('id')
-    if (targetId) {
-      await store.selectAnswer(targetId)
-    }
+  // 3. 检查是否直接打开指定问答详情
+  const targetId = getArchiveTargetId()
+  if (targetId) {
+    // 优先加载指定的问答进入详情页
+    await store.selectAnswer(targetId)
+    // 后台拉取问答列表（不重置当前选中的问答），确保用户点击返回时有完整列表
+    store.fetchAnswersList(false)
+  } else {
+    // 无特定问答时，加载首页所有内容
+    store.fetchAnswersList(true)
   }
 })
 

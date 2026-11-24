@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import { getAuthTokenFromUrl } from '../utils/urlHelper'
 
 const API_BASE = ''
 const PAGE_LIMIT = 50
@@ -51,8 +52,7 @@ export const useArchiveStore = defineStore('archive', () => {
 
   // 如果 URL 中携带了 token，自动记录到本地存储
   if (typeof window !== 'undefined') {
-    const urlParams = new URLSearchParams(window.location.search)
-    const tokenFromUrl = urlParams.get('token')
+    const tokenFromUrl = getAuthTokenFromUrl()
     if (tokenFromUrl) {
       localStorage.setItem('token', tokenFromUrl)
     }
@@ -157,12 +157,14 @@ export const useArchiveStore = defineStore('archive', () => {
   }
 
   // 重置并拉取第 1 页（切换 tag/search 时调用）
-  const fetchAnswersList = async () => {
+  const fetchAnswersList = async (resetSelection = true) => {
     currentPage.value = 1
     answers.value = []
     totalCount.value = 0
-    currentGroup.value = null
-    currentAnswer.value = null
+    if (resetSelection) {
+      currentGroup.value = null
+      currentAnswer.value = null
+    }
     try {
       const res = await apiFetch(buildListURL(1))
       if (res.ok) {
@@ -200,7 +202,7 @@ export const useArchiveStore = defineStore('archive', () => {
 
   // tag 或 search 变化时重新拉取
   watch([activeCategory, searchQuery], () => {
-    fetchAnswersList()
+    fetchAnswersList(true)
   })
 
   const selectAnswer = async (id, keepGroup = false) => {
@@ -209,12 +211,35 @@ export const useArchiveStore = defineStore('archive', () => {
       const el = document.getElementById('main-scroll-container')
       savedScrollY.value = el ? el.scrollTop : 0
     }
+    currentView.value = 'home'
     try {
       const res = await apiFetch(`${API_BASE}/api/answers/${id}`)
       if (res.ok) {
-        currentAnswer.value = await res.json()
+        const data = await res.json()
+        currentAnswer.value = data
         if (!keepGroup) {
           currentGroup.value = null
+          // 如果该问答属于某个问题，自动拉取同一问题下的所有回答成组
+          if (data.question_id && data.question_id !== 'twitter') {
+            try {
+              const title = encodeURIComponent(data.title || '')
+              const qid = encodeURIComponent(data.question_id || '')
+              const groupRes = await apiFetch(`${API_BASE}/api/group/answers?title=${title}&question_id=${qid}`)
+              if (groupRes.ok) {
+                const fullAnswers = await groupRes.json()
+                if (fullAnswers && fullAnswers.length > 0) {
+                  currentGroup.value = {
+                    groupKey: `${data.question_id}_${data.title}`,
+                    title: data.title,
+                    answers: fullAnswers,
+                    count: fullAnswers.length
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn('获取完整问答分组失败:', err)
+            }
+          }
         }
         // 进入详情后滚动到顶部
         const el = document.getElementById('main-scroll-container')

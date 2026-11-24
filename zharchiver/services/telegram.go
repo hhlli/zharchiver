@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 
 	"zharchiver/models"
 	"zharchiver/utils"
@@ -112,17 +115,62 @@ func answerCallbackQuery(db *sql.DB, token, callbackQueryID string) {
 	client.Do(req)
 }
 
+func buildWebAppTargetURL(db *sql.DB, webAppURL, answerID string) string {
+	webAppURL = strings.TrimRight(strings.TrimSpace(webAppURL), "/")
+	if webAppURL == "" {
+		return ""
+	}
+
+	var targetURL string
+	if strings.Contains(webAppURL, "t.me/") {
+		separator := "?"
+		if strings.Contains(webAppURL, "?") {
+			separator = "&"
+		}
+		targetURL = fmt.Sprintf("%s%sstartapp=%s", webAppURL, separator, answerID)
+	} else {
+		separator := "/?id="
+		if strings.Contains(webAppURL, "?") {
+			separator = "&id="
+		}
+		targetURL = fmt.Sprintf("%s%s%s", webAppURL, separator, answerID)
+	}
+
+	if models.GetSetting(db, "is_password_enabled") == "true" {
+		secretHex := models.GetSetting(db, "jwt_secret")
+		if secretHex != "" {
+			secret, err := hex.DecodeString(secretHex)
+			if err == nil {
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+					"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
+					"iat": time.Now().Unix(),
+				})
+				tokenString, err := token.SignedString(secret)
+				if err == nil {
+					separator := "&token="
+					if !strings.Contains(targetURL, "?") {
+						separator = "?token="
+					}
+					targetURL = fmt.Sprintf("%s%s%s", targetURL, separator, tokenString)
+				}
+			}
+		}
+	}
+
+	return targetURL
+}
+
 func generateTagMarkup(db *sql.DB, answerID string) InlineKeyboardMarkup {
 	var rows [][]InlineKeyboardButton
 
 	// 1. 如果配置了 Web App 访问地址，添加【📖 在 TG 中打开阅读】按钮作为首行
-	webAppURL := strings.TrimRight(strings.TrimSpace(models.GetSetting(db, "telegram_web_app_url")), "/")
-	if webAppURL != "" {
-		targetURL := fmt.Sprintf("%s/?id=%s", webAppURL, answerID)
+	webAppURL := models.GetSetting(db, "telegram_web_app_url")
+	targetURL := buildWebAppTargetURL(db, webAppURL, answerID)
+	if targetURL != "" {
 		btn := InlineKeyboardButton{
 			Text: "📖 在 TG 中打开阅读",
 		}
-		if strings.HasPrefix(strings.ToLower(webAppURL), "https://") {
+		if strings.HasPrefix(strings.ToLower(targetURL), "https://") && !strings.Contains(targetURL, "t.me/") {
 			btn.WebApp = &WebAppInfo{URL: targetURL}
 		} else {
 			btn.URL = targetURL
@@ -155,15 +203,15 @@ func generateTagMarkup(db *sql.DB, answerID string) InlineKeyboardMarkup {
 }
 
 func generateOpenOnlyMarkup(db *sql.DB, answerID string) *InlineKeyboardMarkup {
-	webAppURL := strings.TrimRight(strings.TrimSpace(models.GetSetting(db, "telegram_web_app_url")), "/")
-	if webAppURL == "" {
+	webAppURL := models.GetSetting(db, "telegram_web_app_url")
+	targetURL := buildWebAppTargetURL(db, webAppURL, answerID)
+	if targetURL == "" {
 		return nil
 	}
-	targetURL := fmt.Sprintf("%s/?id=%s", webAppURL, answerID)
 	btn := InlineKeyboardButton{
 		Text: "📖 在 TG 中打开阅读",
 	}
-	if strings.HasPrefix(strings.ToLower(webAppURL), "https://") {
+	if strings.HasPrefix(strings.ToLower(targetURL), "https://") && !strings.Contains(targetURL, "t.me/") {
 		btn.WebApp = &WebAppInfo{URL: targetURL}
 	} else {
 		btn.URL = targetURL

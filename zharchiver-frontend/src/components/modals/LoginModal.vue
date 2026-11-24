@@ -41,6 +41,7 @@ import { ref } from 'vue'
 import { useArchiveStore } from '../../stores/archive'
 import BaseModal from '../common/BaseModal.vue'
 import AppButton from '../common/AppButton.vue'
+import { getArchiveTargetId } from '../../utils/urlHelper'
 
 const store = useArchiveStore()
 
@@ -68,7 +69,15 @@ const submitLogin = async () => {
     localStorage.setItem('token', data.token)
     store.showLoginModal = false
     loginPassword.value = ''
-    store.fetchAnswersList()
+
+    // 登录成功后，若带有目标问答 ID 则直接进入该问答
+    const targetId = getArchiveTargetId()
+    if (targetId) {
+      await store.selectAnswer(targetId)
+      store.fetchAnswersList(false)
+    } else {
+      store.fetchAnswersList(true)
+    }
   } catch (err) {
     loginErrorMsg.value = err.message
   } finally {
